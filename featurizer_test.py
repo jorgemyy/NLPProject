@@ -1,14 +1,16 @@
 from featurizer import Featurizer
 from graph import Node
 import stanza
+import gensim.downloader as gd
 import torch
 
 stanza.download('en') 
 nlp = stanza.Pipeline('en') 
+word_embedding_model = gd.load("word2vec-google-news-300")
 
 obama_sentence = "Barack Obama was born in Hawaii"
 ud_sentence = nlp(obama_sentence)
-obama_featurizer = Featurizer("ud")
+obama_featurizer = Featurizer("ud", word_embedding_model)
 
 filename = "gettysburg.txt"
 with open(filename, 'r', encoding='utf-8') as f:
@@ -64,7 +66,7 @@ def test_get_features_from_graph():
 
 
 def test_one_hot_encoding_on_gettysburg():
-    gettys_featurizer = Featurizer("ud")
+    gettys_featurizer = Featurizer("ud", word_embedding_model)
     gettys_featurizer.make_graphs(ud_doc)
     upos_tags, xpos_tags = gettys_featurizer.get_pos_tags()
     num_upos, num_xpos = len(set(upos_tags)), len(set(xpos_tags))
@@ -82,7 +84,7 @@ def test_one_hot_encoding_on_gettysburg():
 
 def test_featurizer_on_gettysburg():
     """test featurizer on simple sentences"""
-    new_gettys_featurizer = Featurizer("ud")
+    new_gettys_featurizer = Featurizer("ud", word_embedding_model)
     features = new_gettys_featurizer.get_features(ud_doc)
 
     num_sentences = len(gettys_text.split('.'))

@@ -1,13 +1,12 @@
 from graph import Node, Edge
 from graph import Graph
-import gensim.downloader as gd
 from sklearn.preprocessing import OneHotEncoder
 import torch
 import numpy as np
 
 class Featurizer:
-    def __init__(self, graph_type):
-        self.embedding_model = gd.load("word2vec-google-news-300")
+    def __init__(self, graph_type, embedding_model):
+        self.embedding_model = embedding_model
         self.graph_type = graph_type
 
 
