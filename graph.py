@@ -27,3 +27,4 @@ class Node:
         self.upos = upos
         self.xpos = xpos
         self.head = head
+        self.neighbors = []

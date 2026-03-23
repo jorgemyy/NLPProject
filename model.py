@@ -1,13 +1,18 @@
-class Model:
+from torch import nn
 
-    def __init__(self):
+class Model(nn.Module):
+
+    def __init__(self, features):
         pass
 
     def load_data(self, data):
         pass
 
-    def train(self, data):
+    def get_features(self):
         pass
 
-    def eval(self, data):
+    def train_model(self, data):
         pass
+
+    def evaluate(self, data):
+        pass 

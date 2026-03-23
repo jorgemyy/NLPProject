@@ -4,3 +4,4 @@ class ModelFactory():
     def createModel(model_type):
         if model_type == "sem":
             model = SentimentAnalysis()
+        return model
