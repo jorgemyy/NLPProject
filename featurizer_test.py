@@ -1,4 +1,5 @@
-from featurizer import Featurizer
+import featurizer
+import graph_initializer
 from graph import Node
 import stanza
 import gensim.downloader as gd
@@ -6,74 +7,73 @@ import torch
 
 stanza.download('en') 
 nlp = stanza.Pipeline('en') 
-word_embedding_model = gd.load("word2vec-google-news-300")
 
 obama_sentence = "Barack Obama was born in Hawaii"
-ud_sentence = nlp(obama_sentence)
-obama_featurizer = Featurizer("ud", word_embedding_model)
+ud_obama_sentence = nlp(obama_sentence)
 
 filename = "gettysburg.txt"
 with open(filename, 'r', encoding='utf-8') as f:
     gettys_text = f.read()
-ud_doc = nlp(gettys_text)
+ud_gettys_doc = nlp(gettys_text)
 
+obama_graphs = graph_initializer.make_graphs(ud_obama_sentence)
+gettys_graphs = graph_initializer.make_graphs(ud_gettys_doc)
 
-def test_get_graph_from_ud():
-    """test whether nodes are created"""
-    sentence = ud_sentence.sentences[0]
-    graph = obama_featurizer.get_graph_from_ud(sentence)
-    num_words = len(obama_sentence.split(' '))
-    assert len(graph.nodes) == num_words
-    assert graph.nodes[0].text == "Barack"
-    assert graph.nodes[3].head == 0 #this is 'born' and the root of the sentence
-
+embedding_model = gd.load("glove-wiki-gigaword-50")
 
 def test_get_word_embeddings():
+    """check if a given word is embedded"""
     word = "Born"
     node = Node(id = 0, text = word, upos = ".", xpos = ".", head = ".")
-    embedding = obama_featurizer.get_word_embeddings(node)
-    assert word in obama_featurizer.embedding_model
+    embedding = featurizer.get_word_embeddings(node,embedding_model)
+    assert word in embedding_model
     assert isinstance(embedding, torch.Tensor)
     assert len(embedding) == 300 #for the gensim 300 model
 
 
 def test_get_word_embeddings_word_not_in_vocab():
+    """check if a given made up is all 0s"""
     word = "garblebleekster"
     node = Node(id = 0, text = word, upos = ".", xpos = ".", head = ".")
-    embedding = obama_featurizer.get_word_embeddings(node)
-    assert word not in obama_featurizer.embedding_model
+    embedding = featurizer.get_word_embeddings(node,embedding_model)
+    assert word not in embedding_model
     assert isinstance(embedding, torch.Tensor)
     assert len(embedding) == 300 
     assert all(v == 0 for v in embedding)
 
 
 def test_get_features_from_graph():
-    obama_featurizer.make_graphs(ud_sentence)
-    obama_featurizer.fit_one_hot_encoding()
-    features = obama_featurizer.get_features_from_graph(obama_featurizer.graphs[0])
+    """check if features are extracted from the graph"""
+    upos_encoder, xpos_encoder = featurizer.fit_one_hot_encoding(obama_graphs)
+    test_graph = obama_graphs[0]
+    features = featurizer.get_features_from_graph(test_graph,upos_encoder,xpos_encoder,embedding_model)
     assert isinstance(features, torch.Tensor)
 
-    first_word_head = obama_featurizer.graphs[0].nodes[0].head
+    """check normalized id and normalized head"""
+    first_word_head = obama_graphs[0].nodes[0].head
     num_words = len(obama_sentence.split(' '))
-    sentence_features = features[0]
-    assert torch.isclose(sentence_features[0], torch.tensor(1 / num_words)) # normalized id
-    assert torch.isclose(sentence_features[1], torch.tensor(first_word_head / num_words) if first_word_head != 0 else torch.tensor(0)) # normalized head id
+    first_sentence_features = features[0]
+    assert torch.isclose(first_sentence_features[0], torch.tensor(1 / num_words)) # normalized id
+    assert torch.isclose(first_sentence_features[1], torch.tensor(first_word_head / num_words) if first_word_head != 0 else torch.tensor(0)) # normalized head id
 
-    upos_tags, xpos_tags = obama_featurizer.get_pos_tags()
+    """check shape of node features"""
+    upos_tags, xpos_tags = featurizer.get_pos_tags(obama_graphs)
     num_upos, num_xpos = len(set(upos_tags)), len(set(xpos_tags))
-    length_of_vec = 2 + num_upos + num_xpos + 300
-    assert len(sentence_features) == length_of_vec
+    embedding_shape = 300 #from gensim model
+    num_normalized_features = 2 # id, head
+    num_node_features = num_normalized_features + num_upos + num_xpos + embedding_shape
+    num_nodes = len(test_graph.nodes)
+    assert features.shape == (num_nodes,num_node_features)
 
 
 def test_one_hot_encoding_on_gettysburg():
-    gettys_featurizer = Featurizer("ud", word_embedding_model)
-    gettys_featurizer.make_graphs(ud_doc)
-    upos_tags, xpos_tags = gettys_featurizer.get_pos_tags()
+    """check one hot encoding of parts of speech"""
+    upos_tags, xpos_tags = featurizer.get_pos_tags(gettys_graphs)
     num_upos, num_xpos = len(set(upos_tags)), len(set(xpos_tags))
-    gettys_featurizer.fit_one_hot_encoding()
+    upos_encoder, xpos_encoder = featurizer.fit_one_hot_encoding(gettys_graphs)
 
-    first_word_of_speech = gettys_featurizer.graphs[0].nodes[0]
-    pos_vec = gettys_featurizer.one_hot_encode(first_word_of_speech)
+    first_word_of_speech = gettys_graphs[0].nodes[0]
+    pos_vec = featurizer.one_hot_encode(first_word_of_speech, upos_encoder, xpos_encoder)
     upos_vec, xpos_vec = pos_vec[0], pos_vec[1]
 
     assert len(upos_vec) == num_upos
@@ -84,8 +84,15 @@ def test_one_hot_encoding_on_gettysburg():
 
 def test_featurizer_on_gettysburg():
     """test featurizer on simple sentences"""
-    new_gettys_featurizer = Featurizer("ud", word_embedding_model)
-    features = new_gettys_featurizer.get_features(ud_doc)
+    features = featurizer.get_features(gettys_graphs,embedding_model)
 
-    num_sentences = len(gettys_text.split('.'))
+    upos_tags, xpos_tags = featurizer.get_pos_tags(gettys_graphs)
+    num_upos, num_xpos = len(set(upos_tags)), len(set(xpos_tags))
+    embedding_shape = 300 #from gensim model
+    num_normalized_features = 2 # id, head
+    num_node_features = num_normalized_features + num_upos + num_xpos + embedding_shape
+    num_nodes_in_first_graph = len(gettys_graphs[0].nodes)
+    num_sentences = len(ud_gettys_doc.sentences)
+    # shape = num_sentences, num_nodes, num_node_features, where num_nodes is inconstant
+    assert features[0].shape == (num_nodes_in_first_graph, num_node_features)
     assert len(features) == num_sentences

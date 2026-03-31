@@ -2,15 +2,17 @@ class Graph:
     def __init__(self):
         self.nodes = []
         self.edges = []
+        self.edges_arr = []
     
     def print_graph(self):
         pass
 
-    def add_Node(self, node):
+    def add_node(self, node):
         self.nodes.append(node)
 
     def add_edge(self, edge):
         self.edges.append(edge)
+        self.edges_tuple.append([edge.source,edge.target])
 
 
 class Edge:
@@ -27,4 +29,3 @@ class Node:
         self.upos = upos
         self.xpos = xpos
         self.head = head
-        self.neighbors = []
