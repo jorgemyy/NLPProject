@@ -1,7 +1,8 @@
-from sentiment_analysis import SentimentAnalysis
+from sentiment_analysis_model import SentimentAnalysis
 
 class ModelFactory():
-    def createModel(model_type):
-        if model_type == "sem":
-            model = SentimentAnalysis()
-        return model
+    def __init__(self, num_node_features):
+        self.num_node_features = num_node_features
+
+    def createSemModel(self):
+        return SentimentAnalysis()
