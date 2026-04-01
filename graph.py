@@ -12,7 +12,7 @@ class Graph:
 
     def add_edge(self, edge):
         self.edges.append(edge)
-        self.edges_tuple.append([edge.source,edge.target])
+        self.edges_arr.append([edge.source,edge.target])
 
 
 class Edge:

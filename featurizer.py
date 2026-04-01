@@ -4,7 +4,7 @@ import numpy as np
 import gensim.downloader as gd
 
 
-def get_features(graphs, embedding_model=gd.load("glove-wiki-gigaword-50")):
+def get_features(graphs, embedding_model=gd.load("glove-wiki-gigaword-100")):
     upos_encoder, xpos_encoder = fit_one_hot_encoding(graphs)   
     return [get_features_from_graph(graph, upos_encoder, xpos_encoder, embedding_model) for graph in graphs]
 
@@ -40,12 +40,13 @@ def one_hot_encode(node, upos_encoder, xpos_encoder):
     torch.tensor(xpos_vec, dtype=torch.float32))
 
 
-def get_word_embeddings(node,embedding_model,dim=300):
+def get_word_embeddings(node,embedding_model):
     word = node.text.lower()
+    embedding_dim = embedding_model.vector_size
     if word in embedding_model:
         return torch.tensor(embedding_model[word], dtype=torch.float32)
     else:
-        return torch.zeros(dim, dtype=torch.float32)
+        return torch.zeros(embedding_dim, dtype=torch.float32)
     
 
 def get_features_from_graph(graph, upos_encoder, xpos_encoder, embedding_model):

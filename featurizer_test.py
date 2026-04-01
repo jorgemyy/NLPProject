@@ -19,16 +19,17 @@ ud_gettys_doc = nlp(gettys_text)
 obama_graphs = graph_initializer.make_graphs(ud_obama_sentence)
 gettys_graphs = graph_initializer.make_graphs(ud_gettys_doc)
 
-embedding_model = gd.load("glove-wiki-gigaword-50")
+embedding_model = gd.load("glove-wiki-gigaword-100")
+embedding_dim = embedding_model.vector_size
 
 def test_get_word_embeddings():
     """check if a given word is embedded"""
-    word = "Born"
+    word = "born"
     node = Node(id = 0, text = word, upos = ".", xpos = ".", head = ".")
     embedding = featurizer.get_word_embeddings(node,embedding_model)
     assert word in embedding_model
     assert isinstance(embedding, torch.Tensor)
-    assert len(embedding) == 300 #for the gensim 300 model
+    assert len(embedding) == embedding_dim
 
 
 def test_get_word_embeddings_word_not_in_vocab():
@@ -38,7 +39,7 @@ def test_get_word_embeddings_word_not_in_vocab():
     embedding = featurizer.get_word_embeddings(node,embedding_model)
     assert word not in embedding_model
     assert isinstance(embedding, torch.Tensor)
-    assert len(embedding) == 300 
+    assert len(embedding) == embedding_dim 
     assert all(v == 0 for v in embedding)
 
 
@@ -59,9 +60,8 @@ def test_get_features_from_graph():
     """check shape of node features"""
     upos_tags, xpos_tags = featurizer.get_pos_tags(obama_graphs)
     num_upos, num_xpos = len(set(upos_tags)), len(set(xpos_tags))
-    embedding_shape = 300 #from gensim model
     num_normalized_features = 2 # id, head
-    num_node_features = num_normalized_features + num_upos + num_xpos + embedding_shape
+    num_node_features = num_normalized_features + num_upos + num_xpos + embedding_dim
     num_nodes = len(test_graph.nodes)
     assert features.shape == (num_nodes,num_node_features)
 
@@ -88,9 +88,8 @@ def test_featurizer_on_gettysburg():
 
     upos_tags, xpos_tags = featurizer.get_pos_tags(gettys_graphs)
     num_upos, num_xpos = len(set(upos_tags)), len(set(xpos_tags))
-    embedding_shape = 300 #from gensim model
     num_normalized_features = 2 # id, head
-    num_node_features = num_normalized_features + num_upos + num_xpos + embedding_shape
+    num_node_features = num_normalized_features + num_upos + num_xpos + embedding_dim
     num_nodes_in_first_graph = len(gettys_graphs[0].nodes)
     num_sentences = len(ud_gettys_doc.sentences)
     # shape = num_sentences, num_nodes, num_node_features, where num_nodes is inconstant
