@@ -1,7 +1,4 @@
 from graph import Graph, Node, Edge
-import torch
-import featurizer
-from torch_geometric.data import Data
 
 def get_graph_from_ud(ud_sentence):
     graph = Graph()
@@ -30,12 +27,11 @@ def make_graphs(ud_doc):
     return graphs
 
 
-def create_objects_for_gnn(graphs):
-    data_objects = []
-    features = featurizer.get_features(graphs)
-    for i in range(len(graphs)):
-        edge_index = torch.tensor(graphs[i].edges_arr, dtype = torch.long)
-        x = features[i]
-        data_graph = Data(x=x, edge_index=edge_index.t().contiguous())
-        data_objects.append(data_graph)
-    return data_objects
+def make_and_merge_graphs(ud_doc):
+    graphs = make_graphs(ud_doc)
+    
+    merge_graph = graphs[0]
+    for graph in graphs[1:]:
+        merge_graph.merge(graph)
+
+    return merge_graph

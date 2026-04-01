@@ -62,8 +62,7 @@ def test_get_features_from_graph():
     num_upos, num_xpos = len(set(upos_tags)), len(set(xpos_tags))
     num_normalized_features = 2 # id, head
     num_node_features = num_normalized_features + num_upos + num_xpos + embedding_dim
-    num_nodes = len(test_graph.nodes)
-    assert features.shape == (num_nodes,num_node_features)
+    assert features.shape == (num_words,num_node_features)
 
 
 def test_one_hot_encoding_on_gettysburg():
@@ -82,16 +81,31 @@ def test_one_hot_encoding_on_gettysburg():
     assert len([v for v in xpos_vec if v == 1]) == 1
 
 
-def test_featurizer_on_gettysburg():
-    """test featurizer on simple sentences"""
+def test_featurizer_on_gettysburg_by_sentence():
+    """test featurizer on simple sentences, creating a graph for each sentence"""
     features = featurizer.get_features(gettys_graphs,embedding_model)
 
     upos_tags, xpos_tags = featurizer.get_pos_tags(gettys_graphs)
     num_upos, num_xpos = len(set(upos_tags)), len(set(xpos_tags))
     num_normalized_features = 2 # id, head
     num_node_features = num_normalized_features + num_upos + num_xpos + embedding_dim
-    num_nodes_in_first_graph = len(gettys_graphs[0].nodes)
+    num_nodes_in_first_graph = len(ud_gettys_doc.sentences[0].words)
     num_sentences = len(ud_gettys_doc.sentences)
     # shape = num_sentences, num_nodes, num_node_features, where num_nodes is inconstant
     assert features[0].shape == (num_nodes_in_first_graph, num_node_features)
     assert len(features) == num_sentences
+
+
+def test_featurizer_on_gettysburg_using_merge():
+    """test featurizer on simple sentences, then merge all graphs into a single graph"""
+    gettys_merged_graph = graph_initializer.make_and_merge_graphs(ud_gettys_doc)
+    features = featurizer.get_features([gettys_merged_graph],embedding_model)
+
+    upos_tags, xpos_tags = featurizer.get_pos_tags([gettys_merged_graph])
+    num_upos, num_xpos = len(set(upos_tags)), len(set(xpos_tags))
+    num_normalized_features = 2 # id, head
+    num_node_features = num_normalized_features + num_upos + num_xpos + embedding_dim
+    num_nodes_in_doc = ud_gettys_doc.num_words
+    assert len(features) == 1
+    assert features[0].shape == (num_nodes_in_doc, num_node_features)
+

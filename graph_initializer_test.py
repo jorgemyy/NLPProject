@@ -9,7 +9,6 @@ filename = "gettysburg.txt"
 with open(filename, 'r', encoding='utf-8') as f:
     gettys_text = f.read()
 ud_gettys_doc = nlp(gettys_text)
-gettys_graphs = graph_initializer.make_graphs(ud_gettys_doc)
 
 
 def test_get_graph_from_ud():
@@ -24,9 +23,10 @@ def test_get_graph_from_ud():
     assert graph.edges_arr[0] == [graph.nodes[0].head - 1, 0]
 
 
-def test_create_objects_for_gnn():
-    data_objects = graph_initializer.create_objects_for_gnn(gettys_graphs)
-    first_data_object = data_objects[0]
-    assert isinstance(first_data_object, data.Data)
-    assert first_data_object.num_nodes == len(gettys_graphs[0].nodes)
-    assert first_data_object.num_edges == len(gettys_graphs[0].edges)
+def test_make_and_merge_graphs():
+    """test making a single graph for gettysburg"""
+    gettys_graph = graph_initializer.make_and_merge_graphs(ud_gettys_doc)
+    assert len(gettys_graph.nodes) == ud_gettys_doc.num_words
+    
+    graphs_not_merged = graph_initializer.make_graphs(ud_gettys_doc)
+    assert len(gettys_graph.edges) == sum([graph.edges for graph in graphs_not_merged])

@@ -14,6 +14,27 @@ class Graph:
         self.edges.append(edge)
         self.edges_arr.append([edge.source,edge.target])
 
+    def merge(self, other):
+        offset = len(self.nodes)  
+
+        for node in other.nodes:
+            new_node = Node(
+                id=node.id + offset,
+                text=node.text,
+                upos=node.upos,
+                xpos=node.xpos,
+                head=node.head  
+            )
+            self.add_node(new_node)
+
+        for edge in other.edges:
+            new_edge = Edge(
+                source=edge.source + offset,
+                target=edge.target + offset,
+                label=edge.label
+            )
+            self.add_edge(new_edge)
+
 
 class Edge:
     def __init__(self, source, target, label):
