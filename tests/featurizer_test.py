@@ -1,9 +1,10 @@
-import featurizer
-import graph_initializer
-from graph import Node
 import stanza
 import gensim.downloader as gd
 import torch
+
+import src.package.featurizer as featurizer
+import src.package.graph_initializer as graph_initializer
+from src.package.graph import Node
 
 stanza.download('en') 
 nlp = stanza.Pipeline('en') 

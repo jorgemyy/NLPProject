@@ -1,6 +1,6 @@
-import graph_initializer
-from featurizer_test import nlp
-from torch_geometric import data
+from tests.featurizer_test import nlp
+
+import src.package.graph_initializer as graph_initializer
 
 obama_sentence = "Barack Obama was born in Hawaii"
 ud_obama_sentence = nlp(obama_sentence)

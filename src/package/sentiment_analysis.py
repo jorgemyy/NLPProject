@@ -1,11 +1,11 @@
 import kagglehub
 from kagglehub import KaggleDatasetAdapter
-import graph_initializer
-from featurizer_test import nlp
 import torch
-from sentiment_analysis_model import SentimentAnalysis
 from torch_geometric.data import Data
-import featurizer
+import stanza
+
+import src.package.featurizer as featurizer
+import src.package.graph_initializer as graph_initializer
 
 def get_data():
     train_df = kagglehub.dataset_load(
@@ -28,6 +28,8 @@ def get_data():
 
 
 def get_ud_data_from_df(df):
+    stanza.download('en') 
+    nlp = stanza.Pipeline('en') 
     ud_texts = [nlp(text) for text in df["text"]]
     labels = torch.tensor(df["sentiment"], dtype=torch.float32)
     graphs = [graph_initializer.make_and_merge_graphs(text) for text in ud_texts]

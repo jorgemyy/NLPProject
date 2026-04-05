@@ -1,4 +1,4 @@
-from sentiment_analysis_model import SentimentAnalysis
+from src.package.sentiment_analysis import SentimentAnalysis
 
 class ModelFactory():
     def __init__(self, num_node_features):

@@ -1,0 +1,10 @@
+pandas
+torch
+torch_geometric
+stanza
+gensim
+scikit-learn
+numpy
+
+[dev]
+pytest

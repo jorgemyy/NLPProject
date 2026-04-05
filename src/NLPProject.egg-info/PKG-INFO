@@ -1,0 +1,34 @@
+Metadata-Version: 2.4
+Name: NLPProject
+Version: 0.1.0
+Summary: NLP Project
+Author: Jeremy Miesch
+Requires-Python: >=3.8
+Description-Content-Type: text/markdown
+Requires-Dist: pandas
+Requires-Dist: torch
+Requires-Dist: torch_geometric
+Requires-Dist: stanza
+Requires-Dist: gensim
+Requires-Dist: scikit-learn
+Requires-Dist: numpy
+Provides-Extra: dev
+Requires-Dist: pytest; extra == "dev"
+
+This project is for CSCI 5448 at CU Boulder in the Spring 2026 semester.
+
+## Update for mid project review:
+
+I have committed most of the work so far to understanding the types of semantic graphs I will use, understanding the libraries I will use, and creating and testing a Featurizer class which turns the universal Graph object into features for plugging into various pytorch models. Each Graph stores two lists: one for nodes and one for edges. Information such as part of speech, word embedding, and head are stored in the nodes, and information such as source and target are stored in the edges. The Featurizer reads in library specific objects for AMR and UD graphs and transforms them into universal Graph objects, while also featurizing Graph information into a format that can be read into pytorch models. Right now, only usability for UD graphs, and only features for Nodes (not Edges), have been implemented. All the tests in featurizer_test.py are successful.
+
+
+This project makes use of the adapter pattern, the strategy pattern, and the template pattern.
+
+### Adapter Pattern
+This is the most important design pattern for this project. In essence, the goal of the project is to create a new universal class, Graph, which adapts AMR and UD graphs from different libraries into the same object. Each of amrlib and stanza use different methods to build their graphs, but the core construction of nodes and edges is the same. Graph objects are created in Featurizer.get_graph_from_ud or Featurizer.get_graph_from_amr and built based on the specific properties of the AMR and UD objects imported from the libraries.
+
+### Template Pattern
+The template pattern is used in creating the different models, as each model extends a template Model class that contains information about inputting data, training, and evaluating. The SentimentAnalysis class shows where this is headed, and further models for part of speech tagging, key word tagging, and perhaps others wil lbe added. This is not as clear of an implementation of the template pattern as homework assignments, as python does not have abstract methods and cannot force implementation standards across subclasses, but the goal is to have many models that can be trained and called using methods in the superclass. 
+
+### Factory Pattern
+The factory pattern will be used to create different models. I am using the Template pattern for this, and a simple factory pattern will be helpful for encapsulating the creation of Model objects. The factory pattern is implemented in model_factory.py. Right now, I have only started with the sentiment analysis model, but there will additional models as I continue with the project.
