@@ -1,4 +1,4 @@
-from src.package.graph import Graph, Node, Edge
+from package.graph import Graph, Node, Edge
 
 def get_graph_from_ud(ud_sentence):
     graph = Graph()

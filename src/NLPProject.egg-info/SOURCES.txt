@@ -10,5 +10,6 @@ src/package/featurizer.py
 src/package/graph.py
 src/package/graph_initializer.py
 src/package/model.py
-src/package/model_factory.py
 src/package/sentiment_analysis.py
+src/package/models/model_factory.py
+src/package/models/sentiment_analysis_model.py
