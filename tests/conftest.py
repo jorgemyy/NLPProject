@@ -13,7 +13,6 @@ def embedding_model():
 
 @pytest.fixture(scope="session")
 def nlp():
-    print("CREATING NLP PIPELINE")
     return stanza.Pipeline('en')
 
 @pytest.fixture(scope="session")

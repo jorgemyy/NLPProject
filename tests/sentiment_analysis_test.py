@@ -2,65 +2,72 @@ import pandas as pd
 import torch
 from torch_geometric.data import Data
 import pytest
+from sklearn.model_selection import train_test_split
 
 from package import graph
 from package import sentiment_analysis
 from package import featurizer
+from package.models.model_factory import ModelFactory
 
 @pytest.fixture(scope="session")
-def train_test_df():
+def full_df():
     return sentiment_analysis.get_data()
 
 @pytest.fixture(scope="session")
-def train_df(train_test_df):
-    return train_test_df[0].head(10)
+def first_data_object(full_df, nlp):
+    return sentiment_analysis.create_objects_for_gnn(full_df.head(1), nlp)[0]
 
 @pytest.fixture(scope="session")
-def test_df(train_test_df):
-    return train_test_df[1].head(5)
+def data_objects_small(full_df, nlp):
+    return sentiment_analysis.create_objects_for_gnn(full_df.head(20), nlp)
 
 @pytest.fixture(scope="session")
-def train_graphs_labels(train_df,nlp):
-    return sentiment_analysis.get_ud_data_from_df(train_df,nlp)
-
-@pytest.fixture(scope="session")
-def train_graphs(train_graphs_labels):
-    return train_graphs_labels[0]
-
-@pytest.fixture(scope="session")
-def train_labels(train_graphs_labels):
-    return train_graphs_labels[1]
+def data_objects_full(full_df, nlp):
+    return sentiment_analysis.create_objects_for_gnn(full_df.head(5000), nlp)
 
 
-def test_get_data(train_df, test_df):
+def test_get_data(full_df):
     '''test if the data is successfully loaded from kaggles with the correct labels'''
-    assert isinstance(train_df,pd.DataFrame)
-    assert isinstance(test_df,pd.DataFrame)
-    assert not train_df.isna().values.any()
-    assert not test_df.isna().values.any()
+    assert isinstance(full_df,pd.DataFrame)
+    assert not full_df.isna().values.any()
 
-    assert all(x <= 2 for x in set(train_df["sentiment"]))
-    assert all(x <= 2 for x in set(test_df["sentiment"]))
+    assert all(x <= 2 for x in set(full_df["sentiment"]))
 
 
-def test_get_graphs_from_ud_df(train_graphs,train_labels):
+def test_get_graphs_from_ud_df(full_df, nlp):
     '''test if graphs and labels are correctly extracted from a data frame using ud'''
-    assert len(train_graphs) == len(train_labels)
-    assert isinstance(train_labels,torch.Tensor)
-    assert isinstance(train_graphs[0],graph.Graph)
+    num_to_look_at = 5
+    graphs, labels = sentiment_analysis.get_ud_data_from_df(full_df.head(num_to_look_at),nlp)
+    assert len(graphs) == len(labels)
+    assert len(graphs) == num_to_look_at
+    assert isinstance(labels,torch.Tensor)
+    assert isinstance(graphs[0],graph.Graph)
 
 
-def test_create_objects_for_gnn(train_df,test_df,train_graphs,train_labels, nlp):
+def test_create_objects_for_gnn(first_data_object, full_df, nlp):
     '''test if the correct data objects are being created'''
-    train_objects, _ = sentiment_analysis.create_objects_for_gnn(train_df, test_df, nlp)
-    first_train_object = train_objects[0]
+    graphs, labels = sentiment_analysis.get_ud_data_from_df(full_df.head(1),nlp)
 
-    first_ud_graph = train_graphs[0]
-    first_ud_label = train_labels[0]
-    num_features = featurizer.get_features(train_graphs)[0].shape[1]
+    first_ud_graph = graphs[0]
+    first_ud_label = labels[0]
+    num_features = featurizer.get_features(graphs)[0].shape[1]
 
-    assert isinstance(first_train_object,Data)
-    assert first_train_object.num_node_features == num_features
-    assert first_train_object.num_nodes == len(first_ud_graph.nodes)
-    assert first_train_object.num_edges == len(first_ud_graph.edges)
-    assert first_train_object.y == first_ud_label
+    assert isinstance(first_data_object,Data)
+    assert first_data_object.num_node_features == num_features
+    assert first_data_object.num_nodes == len(first_ud_graph.nodes)
+    assert first_data_object.num_edges == len(first_ud_graph.edges)
+    assert first_data_object.y == first_ud_label
+
+
+def test_model(data_objects_full):
+    '''test train and eval'''
+    train_objects, test_objects = train_test_split(data_objects_full, test_size=0.2)
+
+    model_factory = ModelFactory(num_node_features=train_objects[0].num_node_features)
+    sem_model = model_factory.createSemModel(num_classes=3)
+
+    sentiment_analysis.train_model(sem_model, train_objects)
+    acc = sentiment_analysis.eval_model(sem_model, test_objects) # right now, test and train would have shape mismatch - CHANGE THIS
+
+    assert acc <= 1
+    assert acc > 0
