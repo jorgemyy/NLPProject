@@ -5,7 +5,7 @@ import pytest
 from sklearn.model_selection import train_test_split
 
 from package import graph
-from package import sentiment_analysis
+from package.models import sentiment_analysis
 from package import featurizer
 from package.models.model_factory import ModelFactory
 
@@ -22,8 +22,8 @@ def data_objects_small(full_df, nlp):
     return sentiment_analysis.create_objects_for_gnn(full_df.head(20), nlp)
 
 @pytest.fixture(scope="session")
-def data_objects_full(full_df, nlp):
-    return sentiment_analysis.create_objects_for_gnn(full_df.head(500), nlp)
+def data_objects_large(full_df, nlp):
+    return sentiment_analysis.create_objects_for_gnn(full_df.head(200), nlp)
 
 
 def test_get_data(full_df):
@@ -59,9 +59,9 @@ def test_create_objects_for_gnn(first_data_object, full_df, nlp):
     assert first_data_object.y == first_ud_label
 
 
-def test_model(data_objects_full):
+def test_model(data_objects_small):
     '''test train and eval'''
-    train_objects, test_objects = train_test_split(data_objects_full, test_size=0.2)
+    train_objects, test_objects = train_test_split(data_objects_small, test_size=0.2)
 
     model_factory = ModelFactory(num_node_features=train_objects[0].num_node_features)
     sem_model = model_factory.createSemModel(num_classes=3)

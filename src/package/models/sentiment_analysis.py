@@ -52,9 +52,10 @@ def create_objects_for_gnn(df, nlp):
     return data_objects
 
 
-def train_model(model, train_data, epochs = 200, batch_size = 32):
+def train_model(model, train_data, epochs = 200, batch_size = 16):
     optimizer = torch.optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
     loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
+    criterion = torch.nn.CrossEntropyLoss()
 
     model.train()
     for epoch in range(epochs+1):
@@ -62,15 +63,18 @@ def train_model(model, train_data, epochs = 200, batch_size = 32):
         for batch in loader:
             optimizer.zero_grad()
             out = model(batch)
-            loss = F.nll_loss(out, batch.y.long())
+            loss = criterion(out,batch.y)
+
+            #back prop
             loss.backward()
             optimizer.step()
             total_loss += loss.item()
+
         if epoch % 10 == 0 or epoch + 1 == epochs:
             print(f"Epoch {epoch}/{epochs}, Loss: {total_loss/len(loader):.4f}")
 
 
-def eval_model(model, test_data, batch_size = 32):
+def eval_model(model, test_data, batch_size = 16):
     model.eval()
     loader = DataLoader(test_data, batch_size=batch_size)
     

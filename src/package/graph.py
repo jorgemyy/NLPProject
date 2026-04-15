@@ -5,7 +5,7 @@ class Graph:
         self.edges_arr = []
     
     def print_graph(self):
-        pass
+        pass 
 
     def add_node(self, node):
         self.nodes.append(node)
@@ -21,9 +21,10 @@ class Graph:
             new_node = Node(
                 id=node.id + offset,
                 text=node.text,
-                upos=node.upos,
-                xpos=node.xpos,
-                head=node.head  
+                root=node.root,
+                head = node.head,
+                incoming_edge_label=node.incoming_edge_label,  
+                outgoing_edge_label=node.outgoing_edge_label
             )
             self.add_node(new_node)
 
@@ -31,22 +32,30 @@ class Graph:
             new_edge = Edge(
                 source=edge.source + offset,
                 target=edge.target + offset,
-                label=edge.label
             )
             self.add_edge(new_edge)
 
 
 class Edge:
-    def __init__(self, source, target, label):
+    def __init__(self, source, target):
         self.source = source
         self.target = target
-        self.label = label
 
 
 class Node:
-    def __init__(self, id, text, upos, xpos, head):
+    def __init__(self, text, id, root, head=None, outgoing_edge_label=None, incoming_edge_label=None):
         self.id = id
         self.text = text
-        self.upos = upos
-        self.xpos = xpos
+        self.root = root
         self.head = head
+        self.outgoing_edge_label = outgoing_edge_label
+        self.incoming_edge_label = incoming_edge_label
+
+    def set_head(self, head):
+        self.head = head
+
+    def set_outgoing_edge_label(self,label):
+        self.outgoing_edge_label = label
+
+    def set_incoming_edge_label(self, label):
+        self.incoming_edge_label = label

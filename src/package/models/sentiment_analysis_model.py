@@ -19,4 +19,4 @@ class SentimentAnalysis(nn.Module):
 
         x = global_mean_pool(x, batch=batch)
 
-        return F.log_softmax(self.classifier(x), dim=1)
+        return self.classifier(x)
