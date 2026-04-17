@@ -58,7 +58,7 @@ def get_features_from_graph(graph, labels_encoder, embedding_model):
     node_features = []
 
     for node in graph.nodes:
-        normalized_id = node.id / len(graph.nodes)
+        normalized_id = (node.id+1) / len(graph.nodes)
         normalized_distance_from_root = (node.id - node.root) / len(graph.nodes)
         structural_features = torch.tensor([normalized_id, normalized_distance_from_root], dtype=torch.float32)
 

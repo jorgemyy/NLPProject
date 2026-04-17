@@ -6,14 +6,14 @@ def find_root_from_ud(ud_sentence):
     words = ud_sentence.words
     for word in words:
         if word.deprel == 'root':
-            return word.id
+            return word.id - 1
 
 def get_graph_from_ud(ud_sentence):
     graph = Graph()
     root = find_root_from_ud(ud_sentence)
     words = ud_sentence.words
     for word in words:
-        newNode = Node(id = word.id,
+        newNode = Node(id = word.id - 1,
                         text = word.text,
                         root = root,
                         )
@@ -34,7 +34,7 @@ def get_graph_from_ud(ud_sentence):
 def get_graph_from_amr(amr_penman_graph):
     graph = Graph()
     variables = list(sorted(amr_penman_graph.variables()))
-    var_to_index = {var: i+1 for i, var in enumerate(variables)}
+    var_to_index = {var: i for i, var in enumerate(variables)}
 
     root = var_to_index[amr_penman_graph.top]
 
@@ -51,8 +51,8 @@ def get_graph_from_amr(amr_penman_graph):
         newEdge = Edge(source=source,
                        target=target)
         graph.add_edge(newEdge)
-        graph.nodes[target-1].add_incoming_edge_label(edge.role)
-        graph.nodes[source-1].add_outgoing_edge_label(edge.role)
+        graph.nodes[target].add_incoming_edge_label(edge.role)
+        graph.nodes[source].add_outgoing_edge_label(edge.role)
 
     return graph
 

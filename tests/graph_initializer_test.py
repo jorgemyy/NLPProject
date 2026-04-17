@@ -6,7 +6,7 @@ from package.graph import Graph
 def test_get_graph_from_ud(ud_obama_doc):
     """test whether nodes are created"""
     sentence = ud_obama_doc.sentences[0]
-    assert type(sentence) == stanza.models.common.doc.Document
+    assert type(sentence) == stanza.models.common.doc.Sentence
     graph = graph_initializer.get_graph_from_ud(sentence)
     num_words = len(ud_obama_doc.text.split(' '))
     assert len(graph.nodes) == num_words
@@ -17,10 +17,11 @@ def test_get_graph_from_ud(ud_obama_doc):
 
 def test_get_graph_from_amr(amr_hawaii_doc):
     """test whether nodes are created"""
-    assert type(amr_hawaii_doc) == penman.graph.Graph
-    graph = graph_initializer.get_graph_from_amr(amr_hawaii_doc)
-    num_concepts = len(amr_hawaii_doc.variables())
-    num_edges = len(amr_hawaii_doc.edges())
+    amr_penman = amr_hawaii_doc[0]
+    assert type(amr_penman) == penman.graph.Graph
+    graph = graph_initializer.get_graph_from_amr(amr_penman)
+    num_concepts = len(amr_penman.variables())
+    num_edges = len(amr_penman.edges())
     num_incoming_edges = sum([len(node.incoming_edge_labels) for node in graph.nodes])
     num_outgoing_edges = sum([len(node.outgoing_edge_labels) for node in graph.nodes])
 
@@ -28,7 +29,7 @@ def test_get_graph_from_amr(amr_hawaii_doc):
     assert len(graph.edges) == num_edges
     assert num_incoming_edges == num_edges
     assert num_outgoing_edges == num_edges
-    assert graph.nodes[0].root == 1
+    assert graph.nodes[0].root == 0
 
 
 def test_get_graphs_from_amr(amr_gettys_list_of_graphs):

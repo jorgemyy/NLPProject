@@ -10,7 +10,7 @@ def test_get_word_embeddings(embedding_model):
     node = Node(id = 0, text = word, root = 0)
     embedding = featurizer.get_word_embeddings(node,embedding_model)
     assert word in embedding_model
-    assert isinstance(embedding, torch.Tensor)
+    assert type(embedding) == torch.Tensor
     assert len(embedding) == embedding_model.vector_size
 
 
@@ -20,7 +20,7 @@ def test_get_word_embeddings_word_not_in_vocab(embedding_model):
     node = Node(id = 0, text = word, root = 0)
     embedding = featurizer.get_word_embeddings(node,embedding_model)
     assert word not in embedding_model
-    assert isinstance(embedding, torch.Tensor)
+    assert type(embedding) == torch.Tensor
     assert len(embedding) == embedding_model.vector_size
     assert all(v == 0 for v in embedding)
 
@@ -59,12 +59,12 @@ def test_get_features_from_amr_graph(amr_hawaii_graph, embedding_model):
 
     labels_encoder = featurizer.fit_one_hot_encoding(amr_hawaii_graph)
     features = featurizer.get_features_from_graph(test_graph,labels_encoder,embedding_model)
-    assert isinstance(features, torch.Tensor)
+    assert type(features) == torch.Tensor
 
     """check structural features"""
     first_word_id = test_graph.nodes[0].id
     num_words = len(test_graph.nodes)
-    root = test_graph.nodes[0].root
+    root = test_graph.nodes[0].root 
     first_sentence_features = features[0]
     assert torch.isclose(first_sentence_features[0], torch.tensor(1 / num_words)) # normalized id
     assert torch.isclose(first_sentence_features[1], torch.tensor((first_word_id - root) / num_words))

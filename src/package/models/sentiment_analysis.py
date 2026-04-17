@@ -3,9 +3,9 @@ from kagglehub import KaggleDatasetAdapter
 import torch
 from torch_geometric.data import Data
 from torch_geometric.loader import DataLoader
-import torch.nn.functional as F
-import pandas as pd
 from tqdm import tqdm
+import nltk
+import penman
 
 import package.featurizer as featurizer
 import package.graph_initializer as graph_initializer
@@ -24,17 +24,28 @@ def get_data():
 
 
 def get_ud_data_from_df(df,nlp):
-    ud_texts = []
-    for text in tqdm(list(df["text"])):
-        ud_texts.append(nlp(text))
-
     labels = torch.tensor(list(df["sentiment"]), dtype=torch.float32)
-    graphs = [graph_initializer.make_and_merge_graphs(text) for text in ud_texts]
+    graphs = []
+    for text in tqdm(list(df["text"])):
+        ud_text = nlp(text)
+        graphs.append(graph_initializer.make_and_merge_graphs(ud_text))
+        
     return graphs, labels
 
 
-def create_objects_for_gnn(df, nlp):
-    graphs, labels = get_ud_data_from_df(df, nlp)
+def get_amr_data_from_df(df,stog):
+    labels = torch.tensor(list(df["sentiment"]), dtype=torch.float32)
+    graphs = []
+    for text in tqdm(list(df["text"])):
+        sentences = nltk.sent_tokenize(text)
+        amr_graphs = stog.parse_sents(sentences)
+        graphs.append(graph_initializer.make_and_merge_graphs([penman.decode(graph) for graph in amr_graphs]))
+
+    return graphs, labels
+
+
+def create_objects_for_gnn(df, mode, nlp=None, stog=None):
+    graphs, labels = (get_ud_data_from_df(df, nlp) if mode == 'ud' else get_amr_data_from_df(df,stog) if mode == 'amr' else ([],[]))
 
     data_objects = []
 
@@ -63,7 +74,7 @@ def train_model(model, train_data, epochs = 200, batch_size = 16):
         for batch in loader:
             optimizer.zero_grad()
             out = model(batch)
-            loss = criterion(out,batch.y)
+            loss = criterion(out,batch.y.long())
 
             #back prop
             loss.backward()
