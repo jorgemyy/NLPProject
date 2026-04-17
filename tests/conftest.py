@@ -27,26 +27,28 @@ def stog():
 
 @pytest.fixture(scope="session")
 def ud_obama_doc(nlp):
-    return nlp("Barack Obama was born in Hawaii")
+    ud_document = nlp("Barack Obama was born in Hawaii")
+    return ud_document.sentences
 
 @pytest.fixture(scope="session")
 def amr_hawaii_doc(stog):
-    graph = stog.parse_sents(['He flies to Hawaii'])[0]
-    return [penman.decode(graph)]
+    amr_graph = stog.parse_sents(['He flies to Hawaii'])[0]
+    return [penman.decode(amr_graph)]
 
 @pytest.fixture(scope="session")
 def ud_gettys_doc(nlp):
     with open("gettysburg.txt", 'r', encoding='utf-8') as f:
         text = f.read()
-    return nlp(text)
+    ud_document = nlp(text)
+    return ud_document.sentences
 
 @pytest.fixture(scope="session")
-def amr_gettys_list_of_graphs(stog):
+def amr_gettys_doc(stog):
     with open("gettysburg.txt", 'r', encoding='utf-8') as f:
         text = f.read()
     sentences = nltk.sent_tokenize(text)
-    graphs = stog.parse_sents(sentences)
-    return [penman.decode(graph) for graph in graphs]
+    amr_graphs = stog.parse_sents(sentences)
+    return [penman.decode(graph) for graph in amr_graphs]
 
 @pytest.fixture(scope="session")
 def ud_obama_graphs(ud_obama_doc):
@@ -61,5 +63,5 @@ def amr_hawaii_graph(amr_hawaii_doc):
     return graph_initializer.make_graphs(amr_hawaii_doc)
 
 @pytest.fixture(scope="session")
-def amr_gettys_graphs(amr_gettys_list_of_graphs):
-    return graph_initializer.make_graphs(amr_gettys_list_of_graphs)
+def amr_gettys_graphs(amr_gettys_doc):
+    return graph_initializer.make_graphs(amr_gettys_doc)

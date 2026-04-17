@@ -28,7 +28,8 @@ def get_ud_data_from_df(df,nlp):
     graphs = []
     for text in tqdm(list(df["text"])):
         ud_text = nlp(text)
-        graphs.append(graph_initializer.make_and_merge_graphs(ud_text))
+        ud_sentences = ud_text.sentences
+        graphs.append(graph_initializer.make_and_merge_graphs(ud_sentences))
         
     return graphs, labels
 
@@ -38,8 +39,9 @@ def get_amr_data_from_df(df,stog):
     graphs = []
     for text in tqdm(list(df["text"])):
         sentences = nltk.sent_tokenize(text)
-        amr_graphs = stog.parse_sents(sentences)
-        graphs.append(graph_initializer.make_and_merge_graphs([penman.decode(graph) for graph in amr_graphs]))
+        amr_sentences = stog.parse_sents(sentences)
+        amr_penman_sentences = [penman.decode(graph) for graph in amr_sentences]
+        graphs.append(graph_initializer.make_and_merge_graphs(amr_penman_sentences))
 
     return graphs, labels
 
@@ -51,7 +53,7 @@ def create_objects_for_gnn(df, mode, nlp=None, stog=None):
 
     features = featurizer.get_features(graphs)
     for i, graph in enumerate(graphs):
-        edge_index = torch.tensor(graph.edges_arr, dtype=torch.long)
+        edge_index = torch.tensor(graph.get_edges_arr(), dtype=torch.long)
 
         x = features[i]
         y = labels[i]

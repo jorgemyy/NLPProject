@@ -108,8 +108,8 @@ def test_featurizer_on_gettysburg_by_sentence(ud_gettys_graphs,embedding_model,u
     incoming_and_outgoing = 2
     num_normalized_features = 2 # id, root
     num_node_features = num_normalized_features + num_total_edge_labels + incoming_and_outgoing + embedding_model.vector_size
-    num_nodes_in_first_graph = len(ud_gettys_doc.sentences[0].words)
-    num_sentences = len(ud_gettys_doc.sentences)
+    num_nodes_in_first_graph = len(ud_gettys_doc[0].words)
+    num_sentences = len(ud_gettys_doc)
     # shape = num_sentences, num_nodes, num_node_features, where num_nodes is inconstant
     assert features[0].shape == (num_nodes_in_first_graph, num_node_features)
     assert len(features) == num_sentences
@@ -126,7 +126,7 @@ def test_featurizer_on_gettysburg_using_merge(ud_gettys_doc,embedding_model):
     incoming_and_outgoing = 2
     num_normalized_features = 2 # id, root
     num_node_features = num_normalized_features + num_total_edge_labels + incoming_and_outgoing + embedding_model.vector_size
-    num_nodes_in_doc = ud_gettys_doc.num_words
+    num_nodes_in_doc = sum([len(ud_gettys_sentence.words) for ud_gettys_sentence in ud_gettys_doc])
     assert len(features) == 1
     assert features[0].shape == (num_nodes_in_doc, num_node_features)
 

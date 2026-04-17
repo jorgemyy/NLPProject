@@ -1,9 +1,14 @@
-class Graph:
-    def __init__(self):
+class Graph():
+    def __init__(self, doc, build_strategy):
         self.nodes = []
         self.edges = []
-        self.edges_arr = []
-    
+        self.root = None
+        self.doc = doc
+        build_strategy.build(self)
+
+    def set_root(self, root):
+        self.root = root
+
     def print_graph(self):
         pass 
 
@@ -12,7 +17,9 @@ class Graph:
 
     def add_edge(self, edge):
         self.edges.append(edge)
-        self.edges_arr.append([edge.source,edge.target])
+
+    def get_edges_arr(self):
+        return [[edge.source,edge.target] for edge in self.edges]
 
     def merge(self, other):
         offset = len(self.nodes)  
