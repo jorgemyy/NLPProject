@@ -1,9 +1,12 @@
 from package.graph import Graph, Node, Edge
+import stanza
+import penman
 
 def find_root_from_ud(ud_sentence):
     words = ud_sentence.words
-    root = next(word for word in words if word.deprel == 'root')
-    return root
+    for word in words:
+        if word.deprel == 'root':
+            return word.id
 
 def get_graph_from_ud(ud_sentence):
     graph = Graph()
@@ -13,17 +16,17 @@ def get_graph_from_ud(ud_sentence):
         newNode = Node(id = word.id,
                         text = word.text,
                         root = root,
-                        head = word.head, 
-                        incoming_edge_label=word.deprel
                         )
+        newNode.add_incoming_edge_label(word.deprel)
         graph.add_node(newNode)
 
-    for node in graph.nodes:
-        if node.head != 0:
-            newEdge = Edge(source=node.head-1,
-                           target=node.id-1,)
+        if word.head != 0:
+            newEdge = Edge(source = word.head-1,
+                           target = word.id-1)
             graph.add_edge(newEdge)
-            graph.nodes[word.head-1].set_outgoing_edge_label(node.incoming_edge_label)
+
+    for edge in graph.edges:
+        graph.nodes[edge.source].add_outgoing_edge_label(graph.nodes[edge.target].incoming_edge_labels[0])
 
     return graph
 
@@ -38,31 +41,34 @@ def get_graph_from_amr(amr_penman_graph):
     for label,rel,concept in amr_penman_graph.instances():
         newNode = Node(id = var_to_index[label],
                        text = "".join([char for char in concept if not char.isdigit() and char != '-']),
-                       root = root,
+                       root = root
                        )
         graph.add_node(newNode)
-        
+    
     for edge in amr_penman_graph.edges():
         source = var_to_index[edge.source]
         target = var_to_index[edge.target]
         newEdge = Edge(source=source,
                        target=target)
         graph.add_edge(newEdge)
-        graph.nodes[target-1].set_head(source)
-        graph.nodes[target-1].set_incoming_edge_label(edge.role)
-        graph.nodes[source-1].set_outgoing_edge_label(edge.role)
+        graph.nodes[target-1].add_incoming_edge_label(edge.role)
+        graph.nodes[source-1].add_outgoing_edge_label(edge.role)
 
     return graph
 
 
-def make_graphs(ud_doc):
-    ud_sentences = ud_doc.sentences
-    graphs = [get_graph_from_ud(sentence) for sentence in ud_sentences]
-    return graphs
+def make_graphs(doc):
+    graphs = []
+    if type(doc) == stanza.models.common.doc.Document:
+        ud_sentences = doc.sentences
+        graphs = [get_graph_from_ud(sentence) for sentence in ud_sentences]
+    elif type(doc) == list and type(doc[0]) == penman.graph.Graph:
+        graphs = [get_graph_from_amr(sentence) for sentence in doc]
+    return graphs 
 
 
-def make_and_merge_graphs(ud_doc):
-    graphs = make_graphs(ud_doc)
+def make_and_merge_graphs(doc):
+    graphs = make_graphs(doc)
     
     merge_graph = graphs[0]
     for graph in graphs[1:]:

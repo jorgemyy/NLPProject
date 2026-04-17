@@ -5,39 +5,44 @@ import gensim.downloader as gd
 
 
 def get_features(graphs, embedding_model=gd.load("glove-wiki-gigaword-100")):
-    upos_encoder, xpos_encoder = fit_one_hot_encoding(graphs)   
-    return [get_features_from_graph(graph, upos_encoder, xpos_encoder, embedding_model) for graph in graphs]
+    labels_encoder = fit_one_hot_encoding(graphs)   
+    return [get_features_from_graph(graph, labels_encoder, embedding_model) for graph in graphs]
 
 
-def get_pos_tags(graphs):
-    upos = []
-    xpos = []
+def get_all_edge_labels(graphs):
+    labels = []
     for graph in graphs:
         for node in graph.nodes:
-            upos.append(node.upos)
-            xpos.append(node.xpos)
-    return upos, xpos 
+            for label in node.incoming_edge_labels:
+                labels.append(label)
+    return labels
 
 
 def fit_one_hot_encoding(graphs):
-    upos_encoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
-    xpos_encoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
+    labels_encoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
 
-    upos_data, xpos_data = get_pos_tags(graphs)
-    upos_data_2d, xpos_data_2d = np.array(upos_data).reshape(-1,1), np.array(xpos_data).reshape(-1,1)
+    list_of_labels = get_all_edge_labels(graphs)
+    labels_list_2d =  np.array(list_of_labels).reshape(-1,1)
 
-    upos_encoder.fit(upos_data_2d)
-    xpos_encoder.fit(xpos_data_2d)
+    labels_encoder.fit(labels_list_2d)
 
-    return upos_encoder, xpos_encoder
+    return labels_encoder
 
 
-def one_hot_encode(node, upos_encoder, xpos_encoder):
-    upos_vec = upos_encoder.transform([[node.upos]])[0]
-    xpos_vec = xpos_encoder.transform([[node.xpos]])[0]
+def one_hot_encode(node, labels_encoder):
+    num_labels = len(labels_encoder.categories_[0])
+    incoming_vec = torch.zeros(num_labels, dtype=torch.float32)
+    outgoing_vec = torch.zeros(num_labels, dtype=torch.float32)
 
-    return (torch.tensor(upos_vec, dtype=torch.float32),
-    torch.tensor(xpos_vec, dtype=torch.float32))
+    for label in node.outgoing_edge_labels:
+        idx = labels_encoder.transform([[label]])[0].argmax()
+        outgoing_vec[idx] = 1.0
+
+    for label in node.incoming_edge_labels:
+        idx = labels_encoder.transform([[label]])[0].argmax()
+        incoming_vec[idx] = 1.0
+
+    return (incoming_vec, outgoing_vec)
 
 
 def get_word_embeddings(node,embedding_model):
@@ -49,19 +54,22 @@ def get_word_embeddings(node,embedding_model):
         return torch.zeros(embedding_dim, dtype=torch.float32)
     
 
-def get_features_from_graph(graph, upos_encoder, xpos_encoder, embedding_model):
+def get_features_from_graph(graph, labels_encoder, embedding_model):
     node_features = []
 
     for node in graph.nodes:
         normalized_id = node.id / len(graph.nodes)
-        normalized_head = node.head / len(graph.nodes) if node.head != 0 else 0
-        structural_features = torch.tensor([normalized_id, normalized_head], dtype=torch.float32)
+        normalized_distance_from_root = (node.id - node.root) / len(graph.nodes)
+        structural_features = torch.tensor([normalized_id, normalized_distance_from_root], dtype=torch.float32)
 
-        upos_vec, xpos_vec = one_hot_encode(node, upos_encoder, xpos_encoder)
+        incoming_edge_label_vecs, outgoing_edge_label_vecs = one_hot_encode(node, labels_encoder)
+        num_incoming_edge_labels = sum(incoming_edge_label_vecs)
+        num_outgoing_edge_labels = sum(outgoing_edge_label_vecs)
+        num_labels_in_and_out = torch.tensor([num_incoming_edge_labels, num_outgoing_edge_labels], dtype=torch.float32)
 
         word_embedding = get_word_embeddings(node,embedding_model)
         
-        feature_vec = torch.cat([structural_features, upos_vec, xpos_vec, word_embedding])
+        feature_vec = torch.cat([structural_features, num_labels_in_and_out, incoming_edge_label_vecs, outgoing_edge_label_vecs, word_embedding])
         node_features.append(feature_vec)
 
     return torch.stack(node_features)
