@@ -46,12 +46,12 @@ def get_amr_data_from_df(df,stog):
     return graphs, labels
 
 
-def create_objects_for_gnn(df, mode, nlp=None, stog=None):
+def create_objects_for_gnn(df, mode, feature_extractor, embedding_model, nlp=None, stog=None):
     graphs, labels = (get_ud_data_from_df(df, nlp) if mode == 'ud' else get_amr_data_from_df(df,stog) if mode == 'amr' else ([],[]))
 
     data_objects = []
 
-    features = featurizer.get_features(graphs)
+    features = featurizer.get_features(graphs,feature_extractor,embedding_model)
     for i, graph in enumerate(graphs):
         edge_index = torch.tensor(graph.get_edges_arr(), dtype=torch.long)
 

@@ -8,26 +8,27 @@ from package import graph
 from package.models import sentiment_analysis
 from package import featurizer
 from package.models.model_factory import ModelFactory
+from package.featurizer_decorator import FeatureExtractorBuilder
  
 @pytest.fixture(scope="session")
 def full_df():
     return sentiment_analysis.get_data()
 
 @pytest.fixture(scope="session")
-def ud_data_objects_small(full_df, nlp):
-    return sentiment_analysis.create_objects_for_gnn(full_df.head(20), 'ud', nlp=nlp)
+def ud_data_objects_small(full_df, nlp, full_feature_extractor, embedding_model):
+    return sentiment_analysis.create_objects_for_gnn(full_df.head(20), 'ud', full_feature_extractor, embedding_model, nlp=nlp)
 
 @pytest.fixture(scope="session")
-def ud_data_objects_large(full_df, nlp):
-    return sentiment_analysis.create_objects_for_gnn(full_df.head(200), 'ud', nlp=nlp)
+def ud_data_objects_large(full_df, nlp, full_feature_extractor, embedding_model):
+    return sentiment_analysis.create_objects_for_gnn(full_df.head(200), 'ud', full_feature_extractor, embedding_model, nlp=nlp)
 
 @pytest.fixture(scope="session")
-def amr_data_objects_small(full_df, stog):
-    return sentiment_analysis.create_objects_for_gnn(full_df.head(20), 'amr', stog=stog)
+def amr_data_objects_small(full_df, stog, full_feature_extractor, embedding_model):
+    return sentiment_analysis.create_objects_for_gnn(full_df.head(20), 'amr', full_feature_extractor, embedding_model, stog=stog)
 
 @pytest.fixture(scope="session")
-def amr_data_objects_large(full_df, stog):
-    return sentiment_analysis.create_objects_for_gnn(full_df.head(200), 'amr', stog=stog)
+def amr_data_objects_large(full_df, stog, full_feature_extractor, embedding_model):
+    return sentiment_analysis.create_objects_for_gnn(full_df.head(200), 'amr', full_feature_extractor, embedding_model, stog=stog)
 
 
 def test_get_data(full_df):
@@ -58,7 +59,7 @@ def test_get_graphs_from_amr_df(full_df, stog):
     assert type(graphs[0]) == graph.Graph
 
 
-def test_create_objects_for_gnn(full_df, nlp, stog):
+def test_create_objects_for_gnn(full_df, nlp, stog, embedding_model, full_feature_extractor):
     '''test if the correct data objects are being created'''
     ud_graphs, ud_labels = sentiment_analysis.get_ud_data_from_df(full_df.head(1),nlp)
     amr_graphs, amr_labels = sentiment_analysis.get_amr_data_from_df(full_df.head(1),stog)
@@ -70,11 +71,15 @@ def test_create_objects_for_gnn(full_df, nlp, stog):
     first_ud_label = ud_labels[0]
     first_amr_graph = amr_graphs[0]
     first_amr_label = amr_labels[0]
-    ud_num_features = featurizer.get_features(ud_graphs)[0].shape[1]
-    amr_num_features = featurizer.get_features(amr_graphs)[0].shape[1]
 
-    ud_first_data_object = sentiment_analysis.create_objects_for_gnn(full_df.head(1), "ud", nlp=nlp)[0]
-    amr_first_data_object = sentiment_analysis.create_objects_for_gnn(full_df.head(1), "amr", stog=stog)[0]
+    ud_features = featurizer.get_features(ud_graphs,full_feature_extractor,embedding_model)
+    amr_features = featurizer.get_features(amr_graphs,full_feature_extractor,embedding_model)
+
+    ud_num_features = len(ud_features[0][0])
+    amr_num_features = len(amr_features[0][0])
+
+    ud_first_data_object = sentiment_analysis.create_objects_for_gnn(full_df.head(1), "ud", full_feature_extractor, embedding_model, nlp=nlp)[0]
+    amr_first_data_object = sentiment_analysis.create_objects_for_gnn(full_df.head(1), "amr", full_feature_extractor, embedding_model, stog=stog)[0]
 
     assert type(ud_first_data_object) == Data
     assert ud_first_data_object.num_node_features == ud_num_features

@@ -1,10 +1,12 @@
 import pytest
 import stanza
 import gensim.downloader as gd
-from package import graph_initializer
 import amrlib
 import penman
 import nltk
+
+from package import graph_initializer
+from package.featurizer_decorator import FeatureExtractorBuilder
 
 def pytest_configure(config):
     stanza.download('en')
@@ -18,12 +20,19 @@ def nlp():
     return stanza.Pipeline('en')
 
 @pytest.fixture(scope="session")
-def embedding_model():
-    return gd.load("glove-wiki-gigaword-100")
-
-@pytest.fixture(scope="session")
 def stog():
     return amrlib.load_stog_model()
+
+@pytest.fixture(scope="session")
+def full_feature_extractor():
+    feature_extractor = (FeatureExtractorBuilder()
+                         .add_id()
+                         .add_root_distance()
+                         .add_incoming_labels()
+                         .add_outgoing_labels()
+                         .add_embedding()
+                         .build())
+    return feature_extractor
 
 @pytest.fixture(scope="session")
 def ud_obama_doc(nlp):
