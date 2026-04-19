@@ -4,4 +4,5 @@ warnings.filterwarnings("ignore")
 from package.app_manager import AppManager
 
 if __name__=="__main__":
-    AppManager()
+    app_manager = AppManager()
+    app_manager.main_loop()
