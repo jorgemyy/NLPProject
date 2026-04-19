@@ -12,7 +12,7 @@ from sklearn.model_selection import train_test_split
 from package import featurizer, graph_initializer
 
 class Executor():
-    def __init__(self, model, graph_type, feature_extractor, embedding_model = gd.load("glove-wiki-gigaword-100")):
+    def __init__(self, model, graph_type, feature_extractor, embedding_model = gd.load("glove-wiki-gigaword-100"), batch_size=16, epochs=200, hidden_layer_dim = 16):
         self.nlp = stanza.Pipeline('en') if graph_type == 'ud' else None
         self.stog = amrlib.load_stog_model() if graph_type == 'amr' else None
 
@@ -20,6 +20,10 @@ class Executor():
         self.model = model
         self.feature_extractor = feature_extractor
         self.embedding_model = embedding_model
+
+        self.batch_size=batch_size
+        self.epochs = epochs
+        self.hidden_layer_dim = hidden_layer_dim
         
 
     def run(self, cap=None):
@@ -28,7 +32,7 @@ class Executor():
         train_objects, test_objects = train_test_split(data_objects, test_size=0.2)
 
         num_node_features = data_objects[0].num_node_features
-        self.model.build_model(num_node_features)
+        self.model.build_model(num_node_features, self.hidden_layer_dim)
 
         self.train_model(train_objects)
         acc = self.eval_model(test_objects)
@@ -77,13 +81,13 @@ class Executor():
         return data_objects
     
 
-    def train_model(self, train_data, epochs = 200, batch_size = 16):
+    def train_model(self, train_data):
         optimizer = torch.optim.Adam(self.model.model.parameters(), lr=0.01, weight_decay=5e-4)
-        loader = DataLoader(train_data, batch_size=batch_size, shuffle=True)
+        loader = DataLoader(train_data, batch_size=self.batch_size, shuffle=True)
         criterion = torch.nn.CrossEntropyLoss()
 
         self.model.model.train()
-        for epoch in range(epochs+1):
+        for epoch in range(self.epochs+1):
             total_loss = 0
             for batch in loader:
                 optimizer.zero_grad()
@@ -95,13 +99,13 @@ class Executor():
                 optimizer.step()
                 total_loss += loss.item()
 
-            if epoch % 10 == 0 or epoch + 1 == epochs:
-                print(f"Epoch {epoch}/{epochs}, Loss: {total_loss/len(loader):.4f}")
+            if epoch % 10 == 0 or epoch + 1 == self.epochs:
+                print(f"Epoch {epoch}/{self.epochs}, Loss: {total_loss/len(loader):.4f}")
 
 
-    def eval_model(self, test_data, batch_size = 16):
+    def eval_model(self, test_data):
         self.model.model.eval()
-        loader = DataLoader(test_data, batch_size=batch_size)
+        loader = DataLoader(test_data, batch_size=self.batch_size)
         
         all_preds = []
         all_labels = []

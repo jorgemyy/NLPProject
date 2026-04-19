@@ -3,6 +3,9 @@ import torch
 class FeatureExtractor():
     def featurize(self, node, graph, context):
         return []
+    
+    def get_name(self):
+        return ''
 
 
 class FeatureExtractorBuilder():
@@ -39,6 +42,9 @@ class FeatureDecorator(FeatureExtractor):
 
     def featurize(self, node, graph, context):
         return self.wrapped.featurize(node,graph,context)
+    
+    def get_name(self):
+        return self.wrapped.get_name()
 
 
 class IDDecorator(FeatureDecorator):
@@ -48,6 +54,9 @@ class IDDecorator(FeatureDecorator):
         features.append(normalized_id)
         return features
     
+    def get_name(self):
+        return super().get_name() + '/ID'
+    
 
 class RootDistanceDecorator(FeatureDecorator):
     def featurize(self, node, graph, context):
@@ -55,6 +64,9 @@ class RootDistanceDecorator(FeatureDecorator):
         features = super().featurize(node,graph,context)
         features.append(normalized_distance_from_root)
         return features
+    
+    def get_name(self):
+        return super().get_name() + '/root'
     
 
 class IncomingEdgeLabelDecorator(FeatureDecorator):
@@ -65,6 +77,9 @@ class IncomingEdgeLabelDecorator(FeatureDecorator):
         features.extend([incoming_edge_label_vecs, num_incoming_edges])
         return features
     
+    def get_name(self):
+        return super().get_name() + '/in_labels'
+    
 
 class OutgoingEdgeLabelDecorator(FeatureDecorator):
     def featurize(self, node, graph, context):
@@ -74,6 +89,9 @@ class OutgoingEdgeLabelDecorator(FeatureDecorator):
         features.extend([outgoing_edge_label_vecs, num_outgoing_edges])
         return features
     
+    def get_name(self):
+        return super().get_name() + '/out_labels'
+    
 
 class EmbeddingDecorator(FeatureDecorator):
     def featurize(self, node, graph, context):
@@ -81,3 +99,6 @@ class EmbeddingDecorator(FeatureDecorator):
         features = super().featurize(node,graph,context)
         features.append(word_embedding)
         return features
+    
+    def get_name(self):
+        return super().get_name() + '/embedding'

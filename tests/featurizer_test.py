@@ -58,6 +58,18 @@ def test_get_features_from_ud_graph_all_features(ud_obama_graphs, embedding_mode
     assert features.shape == (num_words,num_node_features)
 
 
+def test_featurizer_decorator():
+    feature_extractor = (FeatureExtractorBuilder()
+                         .add_incoming_labels()
+                         .add_outgoing_labels()
+                         .build())
+
+    """check get_name"""
+    to_string = feature_extractor.get_name()
+    assert "in_labels" in to_string
+    assert "embedding" not in to_string
+
+
 def test_get_features_from_amr_graph_all_features(amr_hawaii_graph, embedding_model, full_feature_extractor):
     """check if features are extracted from the graph"""
     assert type(amr_hawaii_graph) == list

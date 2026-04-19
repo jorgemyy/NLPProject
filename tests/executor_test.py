@@ -89,7 +89,8 @@ def test_ud_model(ud_executor, full_df):
     ud_data_objects_small = ud_executor.create_objects_for_gnn(full_df.head(10))
     train_objects, test_objects = train_test_split(ud_data_objects_small, test_size=0.2)
     num_node_features = train_objects[0].num_node_features
-    ud_executor.model.build_model(num_node_features)
+    default_hidden_layer_dim = 16
+    ud_executor.model.build_model(num_node_features, default_hidden_layer_dim)
 
     ud_executor.train_model(train_objects)
     acc = ud_executor.eval_model(test_objects) # right now, test and train would have shape mismatch - CHANGE THIS
@@ -103,7 +104,8 @@ def test_amr_model(amr_executor, full_df):
     amr_data_objects_small = amr_executor.create_objects_for_gnn(full_df.head(10))
     train_objects, test_objects = train_test_split(amr_data_objects_small, test_size=0.2)
     num_node_features = train_objects[0].num_node_features
-    amr_executor.model.build_model(num_node_features)
+    default_hidden_layer_dim = 16
+    amr_executor.model.build_model(num_node_features, default_hidden_layer_dim)
 
     amr_executor.train_model(train_objects)
     acc = amr_executor.eval_model(test_objects) # right now, test and train would have shape mismatch - CHANGE THIS

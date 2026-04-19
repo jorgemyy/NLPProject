@@ -29,7 +29,7 @@ class SentimentAnalysisModel():
         self.model = None
         self.num_classes = 3
 
-    def build_model(self, num_node_features, out_dim=16):
+    def build_model(self, num_node_features, out_dim):
         self.model = SentimentAnalysis(num_node_features, self.num_classes, out_dim)
 
     def get_data(self):
@@ -40,6 +40,9 @@ class SentimentAnalysisModel():
             pandas_kwargs={"usecols": ["text", "sentiment"], "encoding": "latin1"}).sample(frac=1).dropna()
         
         mapping = {'negative': 0, 'neutral': 1, 'positive': 2}
-        full_df['label'] = full_df['sentiment'].replace(mapping)
+        full_df['label'] = full_df['sentiment'].replace(mapping).infer_objects(copy=False)
         
         return full_df
+    
+    def get_name(self):
+        return "Sentiment Analysis"
