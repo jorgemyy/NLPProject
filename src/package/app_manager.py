@@ -55,24 +55,23 @@ class AppManager():
                 print(str(x+1) + ". " + column)
                 possible_sort_options.append(str(x+1))
     
-            print(str(num_columns+2) + ". " + "Done Selecting")
-            print(str(num_columns+3) + ". " + "Back")
+            print(str(num_columns+1) + ". " + "Done Selecting")
+            print(str(num_columns+2) + ". " + "Back")
 
             choices_list = []
             mode_list = []
             while True:
                 choice = ''
-                while choice not in possible_sort_options and choice not in [str(num_columns+2), str(num_columns+3)]:
+                while choice not in possible_sort_options and choice not in [str(num_columns+1), str(num_columns+2)]:
                     choice = input("Choice: ")
 
-                if choice == str(num_columns+2):
+                if choice == str(num_columns+1):
                     if len(choices_list) > 0:
                         break
                     print("Must add choices")
 
-                elif choice == str(num_columns+3):
+                elif choice == str(num_columns+2):
                     choices_list = []
-                    self.main_loop()
                     return
                 
                 else:
@@ -160,10 +159,14 @@ class AppManager():
 
         model_factory = ModelFactory()
         model = None
+        batch_size = None
+        epochs = None
+        hidden_layer_dim = None
+        cap = None
         if choice == '1':
             batch_size, epochs, hidden_layer_dim, cap = self.get_parameters()
             model = model_factory.createSemModel(batch_size, epochs, hidden_layer_dim)
-        
+
         return model, batch_size, epochs, hidden_layer_dim, cap
     
 

@@ -11,6 +11,7 @@ class GraphBuilder:
     def build_graphs_from_df(self, df):
         labels = torch.tensor(list(df["label"]), dtype=torch.float32)
         graphs = []
+        print("Loading graphs: ")
         for text in tqdm(list(df["text"])):
             graphs.append(self.make_and_merge_graphs(text))
             

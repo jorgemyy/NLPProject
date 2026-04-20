@@ -15,7 +15,7 @@ def test_prepare_ud(nlp, embedding_model, full_feature_extractor):
 
     pipeline = DataPipeline(sentiment_analysis_model, ud_builder, full_feature_extractor, embedding_model)
 
-    train_objects, test_objects, num_node_features = pipeline.prepare(cap=10)
+    train_objects, test_objects, num_node_features, num_relations = pipeline.prepare(cap=10)
 
     assert(all(type(train_object) == Data for train_object in train_objects))
     assert(all(type(test_object) == Data for test_object in test_objects))
@@ -35,7 +35,7 @@ def test_prepare_amr(stog, embedding_model, full_feature_extractor):
 
     pipeline = DataPipeline(sentiment_analysis_model, amr_builder, full_feature_extractor, embedding_model)
 
-    train_objects, test_objects, num_node_features = pipeline.prepare(cap=10)
+    train_objects, test_objects, num_node_features, num_relations = pipeline.prepare(cap=10)
 
     assert(all(type(train_object) == Data for train_object in train_objects))
     assert(all(type(test_object) == Data for test_object in test_objects))

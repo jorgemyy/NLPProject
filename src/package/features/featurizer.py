@@ -27,25 +27,16 @@ class FeatureContext:
     
 
 
-def get_features(graphs,feature_extractor,embedding_model=gd.load("glove-wiki-gigaword-100")): 
+def get_features(graphs,feature_extractor,embedding_model): 
     labels_encoder = fit_one_hot_encoding(graphs)
     context = FeatureContext(labels_encoder, embedding_model)
     return [get_features_from_graph(graph, feature_extractor, context) for graph in graphs]
 
 
-def get_all_edge_labels(graphs):
-    labels = []
-    for graph in graphs:
-        for node in graph.nodes:
-            for label in node.incoming_edge_labels:
-                labels.append(label)
-    return labels
-
-
 def fit_one_hot_encoding(graphs):
     labels_encoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
 
-    list_of_labels = get_all_edge_labels(graphs)
+    list_of_labels = [label for graph in graphs for label in graph.get_edge_labels()]
     labels_list_2d =  np.array(list_of_labels).reshape(-1,1)
 
     labels_encoder.fit(labels_list_2d)

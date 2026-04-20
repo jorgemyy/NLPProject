@@ -1,1 +1,3 @@
 Model,Graph,Features,Batch,Epochs,Hidden Dim,Cap,Accuracy,Fscore
+Sentiment Analysis,ud,ID/root/in_labels/out_labels/embedding,16,200,32,100,0.2,0.19130434782608696
+Sentiment Analysis,amr,ID/root/in_labels/out_labels/embedding,16,200,32,100,0.4,0.39824561403508774

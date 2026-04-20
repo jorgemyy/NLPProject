@@ -1,6 +1,6 @@
 from torch import nn
 import torch
-from torch_geometric.nn import GCNConv, global_mean_pool
+from torch_geometric.nn import RGCNConv, global_mean_pool
 from torch_geometric.loader import DataLoader
 import torch.nn.functional as F
 from kagglehub import KaggleDatasetAdapter
@@ -8,19 +8,19 @@ import kagglehub
 from sklearn.metrics import f1_score
 
 class SentimentAnalysis(nn.Module):
-    def __init__(self, num_node_features, num_classes, out_dim):
+    def __init__(self, num_node_features, num_classes, out_dim, num_relations):
         super().__init__()
-        self.conv1 = GCNConv(num_node_features, out_dim)
-        self.conv2 = GCNConv(out_dim, out_dim)
+        self.conv1 = RGCNConv(num_node_features, out_dim, num_relations)
+        self.conv2 = RGCNConv(out_dim, out_dim, num_relations)
         self.classifier = nn.Linear(out_dim, num_classes)
 
     def forward(self, data):
-        x, edge_index, batch = data.x, data.edge_index, data.batch
+        x, edge_index, batch, edge_type = data.x, data.edge_index, data.batch, data.edge_type
 
-        x = self.conv1(x, edge_index)
+        x = self.conv1(x, edge_index, edge_type)
         x = F.relu(x)
         x = F.dropout(x, training = self.training)
-        x = self.conv2(x, edge_index)
+        x = self.conv2(x, edge_index, edge_type)
 
         x = global_mean_pool(x, batch=batch)
 
@@ -35,8 +35,8 @@ class SentimentAnalysisModel():
         self.epochs = epochs
         self.out_dim = out_dim
 
-    def build_model(self, num_node_features):
-        self.model = SentimentAnalysis(num_node_features, self.num_classes, self.out_dim)
+    def build_model(self, num_node_features, num_relations):
+        self.model = SentimentAnalysis(num_node_features, self.num_classes, self.out_dim, num_relations)
 
     def get_data(self):
         full_df = kagglehub.dataset_load(
@@ -91,7 +91,7 @@ class SentimentAnalysisModel():
         all_preds = torch.cat(all_preds)
         all_labels = torch.cat(all_labels)
         
-        accuracy = (all_preds == all_labels).sum().item() / len(all_labels)
-        fscore = f1_score(all_labels, all_preds)
+        accuracy = round((all_preds == all_labels).sum().item() / len(all_labels),4)
+        fscore = round(f1_score(all_labels, all_preds, average='weighted'),4)
 
         return accuracy, fscore

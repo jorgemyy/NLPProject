@@ -53,7 +53,7 @@ def test_get_features_from_ud_graph_all_features(obama_sentence, nlp, embedding_
     assert torch.isclose(first_sentence_features[1], torch.tensor((first_word_id - root)/ num_words)) # distance from root
 
     """check shape of node features"""
-    edge_labels = featurizer.get_all_edge_labels(ud_obama_graphs)
+    edge_labels = [label for graph in ud_obama_graphs for label in graph.get_edge_labels()]
     num_total_edge_labels = len(set(edge_labels)) * 2 
     incoming_and_outgoing = 2
     num_structural_features = 2 # id, root
@@ -95,7 +95,7 @@ def test_get_features_from_amr_graph_all_features(obama_sentence, stog, embeddin
     assert torch.isclose(first_sentence_features[1], torch.tensor((first_word_id - root) / num_words))
 
     """check shape of node features"""
-    edge_labels = featurizer.get_all_edge_labels(amr_obama_graphs)
+    edge_labels = [label for graph in amr_obama_graphs for label in graph.get_edge_labels()]
     num_total_edge_labels = len(set(edge_labels)) * 2 
     incoming_and_outgoing = 2
     num_structural_features = 2 # id, root
@@ -120,7 +120,7 @@ def test_get_features_from_amr_graph_only_edge_features(obama_sentence, stog, em
 
     """check edge features"""
     num_words = len(test_graph.nodes)
-    edge_labels = featurizer.get_all_edge_labels(amr_obama_graphs)
+    edge_labels = [label for graph in amr_obama_graphs for label in graph.get_edge_labels()]
     first_sentence_features = features[0]
     num_edge_labels = len(set(edge_labels))
     incoming_edge_multi_hot = first_sentence_features[:num_edge_labels]
@@ -141,7 +141,7 @@ def test_one_hot_encoding_on_gettysburg(gettys_text, stog):
     test_graph = amr_gettys_graphs[0]
 
     """check one hot encoding of parts of speech"""
-    edge_labels = featurizer.get_all_edge_labels(amr_gettys_graphs)
+    edge_labels = [label for graph in amr_gettys_graphs for label in graph.get_edge_labels()]
     num_edge_labels= len(set(edge_labels))
 
     labels_encoder = featurizer.fit_one_hot_encoding(amr_gettys_graphs)
@@ -165,7 +165,7 @@ def test_featurizer_on_gettysburg_by_sentence(gettys_text,nlp,embedding_model,fu
     
     features = featurizer.get_features(ud_gettys_graphs,full_feature_extractor,embedding_model)
 
-    edge_labels = featurizer.get_all_edge_labels(ud_gettys_graphs)
+    edge_labels = [label for graph in ud_gettys_graphs for label in graph.get_edge_labels()]
     num_total_edge_labels = len(set(edge_labels)) * 2 
     incoming_and_outgoing = 2
     num_normalized_features = 2 # id, root
@@ -187,7 +187,7 @@ def test_featurizer_on_gettysburg_using_merge(gettys_text,nlp,embedding_model,fu
 
     features = featurizer.get_features([gettys_merged_graph],full_feature_extractor,embedding_model)
 
-    edge_labels = featurizer.get_all_edge_labels([gettys_merged_graph])
+    edge_labels = [label for label in gettys_merged_graph.get_edge_labels()]
     num_total_edge_labels = len(set(edge_labels)) * 2 
     incoming_and_outgoing = 2
     num_normalized_features = 2 # id, root

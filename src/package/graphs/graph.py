@@ -20,6 +20,9 @@ class Graph():
 
     def get_edges_arr(self):
         return [[edge.source,edge.target] for edge in self.edges]
+    
+    def get_edge_labels(self):
+        return [edge.label for edge in self.edges]
 
     def merge(self, other):
         offset = len(self.nodes)  
@@ -38,14 +41,16 @@ class Graph():
             new_edge = Edge(
                 source=edge.source + offset,
                 target=edge.target + offset,
+                label=edge.label
             )
             self.add_edge(new_edge)
 
 
 class Edge:
-    def __init__(self, source, target):
+    def __init__(self, source, target, label):
         self.source = source
         self.target = target
+        self.label = label
 
 
 class Node:

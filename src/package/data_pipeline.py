@@ -19,21 +19,29 @@ class DataPipeline():
         graphs, labels = self.graph_builder.build_graphs_from_df(df)
         features = featurizer.get_features(graphs,self.feature_extractor,self.embedding_model)
 
-        data_objects = self.create_objects_for_gnn(graphs, features, labels)
+        data_objects, num_relations = self.create_objects_for_gnn(graphs, features, labels)
         train_objects, test_objects = train_test_split(data_objects, test_size=0.2)
 
-        return train_objects, test_objects, data_objects[0].num_node_features
+        num_node_features = data_objects[0].num_node_features
+
+        return train_objects, test_objects, num_node_features, num_relations
 
 
     def create_objects_for_gnn(self, graphs, features, labels):
+        list_of_labels = set([label for graph in graphs for label in graph.get_edge_labels()])
+        num_relations = len(list_of_labels)
+        edge_type_mapping = {label: x for x, label in enumerate(list_of_labels)}
+
         data_objects = []
         for i, graph in enumerate(graphs):
             edge_index = torch.tensor(graph.get_edges_arr(), dtype=torch.long)
+            edge_labels = graph.get_edge_labels()
+            edge_type = torch.tensor([edge_type_mapping[label] for label in edge_labels], dtype=torch.long)
 
             x = features[i]
-            y = labels[i]
+            y = labels[i] 
 
-            data = Data(x=x, edge_index=edge_index.t().contiguous(), y=y)
+            data = Data(x=x, edge_index=edge_index.t().contiguous(), edge_type=edge_type, y=y)
             data_objects.append(data)
         
-        return data_objects
+        return data_objects, num_relations

@@ -35,7 +35,8 @@ class BuildUDGraphStrategy(BuildGraphStrategy):
 
             if word.head != 0:
                 newEdge = Edge(source = word.head-1,
-                            target = word.id-1)
+                            target = word.id-1,
+                            label = word.deprel)
                 graph.add_edge(newEdge)
 
         for edge in graph.edges:
@@ -64,7 +65,8 @@ class BuildAMRGraphStrategy(BuildGraphStrategy):
             source = var_to_index[edge.source]
             target = var_to_index[edge.target]
             newEdge = Edge(source=source,
-                        target=target)
+                        target=target,
+                        label=edge.role)
             graph.add_edge(newEdge)
             graph.nodes[target].add_incoming_edge_label(edge.role)
             graph.nodes[source].add_outgoing_edge_label(edge.role)
