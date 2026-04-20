@@ -1,0 +1,34 @@
+{
+    "summary": {
+        "run_id": 0,
+        "model_name": "Sentiment Analysis",
+        "graph_type": "ud",
+        "cap": 50,
+        "accuracy": 0.3,
+        "f1": 0.3333
+    },
+    "details": {
+        "features": "ID/root/in_labels/out_labels/embedding",
+        "batch_size": 16,
+        "epochs": 200,
+        "hidden_layer_dim": 16,
+        "confusion_matrix": [
+            [
+                0,
+                2,
+                0
+            ],
+            [
+                0,
+                1,
+                0
+            ],
+            [
+                0,
+                5,
+                2
+            ]
+        ],
+        "run_time": 29.667652130126953
+    }
+}

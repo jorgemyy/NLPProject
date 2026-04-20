@@ -5,13 +5,15 @@ from torch_geometric.loader import DataLoader
 import torch.nn.functional as F
 from kagglehub import KaggleDatasetAdapter
 import kagglehub
-from sklearn.metrics import f1_score
+from sklearn.metrics import f1_score, confusion_matrix
 
 class SentimentAnalysis(nn.Module):
     def __init__(self, num_node_features, num_classes, out_dim, num_relations):
         super().__init__()
         self.conv1 = RGCNConv(num_node_features, out_dim, num_relations)
         self.conv2 = RGCNConv(out_dim, out_dim, num_relations)
+        self.conv3 = RGCNConv(out_dim, out_dim, num_relations)
+
         self.classifier = nn.Linear(out_dim, num_classes)
 
     def forward(self, data):
@@ -21,6 +23,8 @@ class SentimentAnalysis(nn.Module):
         x = F.relu(x)
         x = F.dropout(x, training = self.training)
         x = self.conv2(x, edge_index, edge_type)
+        x = F.relu(x)
+        x = self.conv3(x, edge_index, edge_type)
 
         x = global_mean_pool(x, batch=batch)
 
@@ -94,4 +98,6 @@ class SentimentAnalysisModel():
         accuracy = round((all_preds == all_labels).sum().item() / len(all_labels),4)
         fscore = round(f1_score(all_labels, all_preds, average='weighted'),4)
 
-        return accuracy, fscore
+        cm = confusion_matrix(all_labels, all_preds).tolist()
+
+        return accuracy, fscore, cm

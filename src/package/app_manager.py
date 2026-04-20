@@ -1,5 +1,6 @@
 import csv
 import pandas as pd 
+import time
 
 from package.models.model_factory import ModelFactory
 from package.features.featurizer_decorator import FeatureExtractorBuilder
@@ -8,8 +9,9 @@ from package.data_pipeline import DataPipeline
 from package.graphs.graph_builder_factory import GraphBuilderFactory
 
 class AppManager():
-    def __init__(self):
-        pass
+    def __init__(self, saved_state_manager, summary_file = 'output.csv', summary_file_dir = 'src/'):
+        self.saved_state_manager = saved_state_manager
+        self.summary_file = summary_file_dir+summary_file
 
     def main_loop(self):
         while True:
@@ -31,7 +33,7 @@ class AppManager():
                 return
 
 
-    def load_prior_results(self, file_name='output.csv', dir='src/'):
+    def load_prior_results(self):
         print("\n~~~~~~~~~~~PRIOR RESULTS~~~~~~~~~~~")
         print("1. Show sorted results")
         print("2. Show all results")
@@ -43,7 +45,8 @@ class AppManager():
         while choice not in menu_options:
             choice = input("Choice: ")
 
-        df = pd.read_csv(dir+file_name)
+        df = pd.read_csv(self.summary_file)
+        printed_df = None
         if choice == '1':
             possible_sort_options = []
             num_columns = len(df.columns)
@@ -89,17 +92,31 @@ class AppManager():
                     print("Added sort parameter\n")
 
             sorted_df = df.sort_values(by=choices_list,ascending=mode_list)
-            print("---------------------------")
-            print(sorted_df.head(10))
+            printed_df = sorted_df.head(10)
 
         elif choice == '2':
-            print("---------------------------")
-            print(df)
+            printed_df = df
         elif choice == '3':
-            print("---------------------------")
-            print(df.head(10))
+            printed_df = df.head(10)
         elif choice == '4':
             return
+        
+        print("---------------------------")
+        print(printed_df)
+        
+        print("\nSelect any row to look deeper? Press anything else to go back")
+        row = -1
+        while row < 0 or row >= len(printed_df['ID']):
+            row_choice = input("Choice: ")
+            try: 
+                row = int(row_choice)
+            except: 
+                return
+
+        run_id = printed_df['ID'].iloc[row]
+        self.saved_state_manager.show_run_details(run_id)
+        
+        return
 
 
     def model_menu(self):
@@ -135,14 +152,38 @@ class AppManager():
 
         executor = Executor(pipeline)
         
-        accuracy, fscore = executor.run(cap=cap)
+        start = time.time()
+        accuracy, fscore, cm = executor.run(cap=cap)
+        end = time.time()
+
         cap = "None" if cap==None else cap
-        results = [model.get_name(), graph_type, feature_extractor.get_name()[1:], batch_size, epochs, hidden_layer_dim, cap, accuracy, fscore]
-        
+        df = pd.read_csv(self.summary_file)
+        run_id = df['ID'].tail(1) + 1 if not df.empty else 0
+        summary_results_dict = {
+            "run_id": int(run_id),
+            "model_name": model.get_name(),
+            "graph_type": graph_type,
+            "cap": cap,
+            "accuracy": accuracy,
+            "f1": fscore
+        }
+        summary_results = summary_results_dict.values()
+
+        detailed_results = {
+            "features": feature_extractor.get_name()[1:],
+            "batch_size": batch_size,
+            "epochs": epochs,
+            "hidden_layer_dim": hidden_layer_dim,
+            "confusion_matrix": cm,
+            "run_time": end-start
+        }
+
+        self.saved_state_manager.save(summary_results_dict, detailed_results)
+
         with open('src/output.csv', mode='a', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(results)
-        print(f"Results: {results}")
+            writer.writerow(summary_results)
+        print(f"Results: {summary_results}")
         print("Successfully wrote results to file")
         return
 
