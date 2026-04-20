@@ -1,9 +1,11 @@
 import csv
-import pandas as pd
+import pandas as pd 
 
 from package.models.model_factory import ModelFactory
-from package.featurizer_decorator import FeatureExtractorBuilder
+from package.features.featurizer_decorator import FeatureExtractorBuilder
 from package.executor import Executor
+from package.data_pipeline import DataPipeline
+from package.graphs.graph_builder_factory import GraphBuilderFactory
 
 class AppManager():
     def __init__(self):
@@ -53,8 +55,8 @@ class AppManager():
                 print("\n" + str(x+1) + ". " + column)
                 possible_sort_options.append(str(x+1))
     
-                print(str(num_columns+2) + ". " + "Done Selecting")
-                print(str(num_columns+3) + ". " + "Back")
+            print(str(num_columns+2) + ". " + "Done Selecting")
+            print(str(num_columns+3) + ". " + "Back")
 
             choices_list = []
             mode_list = []
@@ -104,7 +106,7 @@ class AppManager():
     def model_menu(self):
         print("\n\n~~~~~~~~~~MODEL MENU~~~~~~~~~~~")
 
-        model = self.get_model() 
+        model, batch_size, epochs, hidden_layer_dim, cap = self.get_model() 
         if model is None:
             return 
         
@@ -115,14 +117,24 @@ class AppManager():
         feature_extractor = self.get_feature_extractor()
         if feature_extractor is None:
             return
-        batch_size, epochs, hidden_layer_dim, cap = self.get_parameters()
 
-        executor = Executor(model=model,
-                               graph_type=graph_type,
-                               feature_extractor=feature_extractor,
-                               batch_size=batch_size,
-                               epochs=epochs,
-                               hidden_layer_dim=hidden_layer_dim)
+        graph_builder_factory = GraphBuilderFactory()
+        graph_builder = None
+        if graph_type == 'amr':
+            graph_builder = graph_builder_factory.create_AMR_Builder()
+            
+        elif graph_type == 'ud':
+            graph_builder = graph_builder_factory.create_UD_Builder()
+
+        if graph_builder is None:
+            return
+
+        pipeline = DataPipeline(model=model,
+                                graph_builder=graph_builder,
+                                feature_extractor=feature_extractor,
+                                embedding_model=None)
+
+        executor = Executor(pipeline)
         
         accuracy = executor.run(cap=cap)
         cap = "None" if cap==None else cap
@@ -149,9 +161,10 @@ class AppManager():
         model_factory = ModelFactory()
         model = None
         if choice == '1':
-            model = model_factory.createSemModel()
+            batch_size, epochs, hidden_layer_dim, cap = self.get_parameters()
+            model = model_factory.createSemModel(batch_size, epochs, hidden_layer_dim)
         
-        return model
+        return model, batch_size, epochs, hidden_layer_dim, cap
     
 
     def get_graph_type(self):

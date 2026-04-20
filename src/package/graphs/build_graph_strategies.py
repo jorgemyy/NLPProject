@@ -1,14 +1,14 @@
 from abc import ABC, abstractmethod 
-from package.graph import Graph, Node, Edge
+from package.graphs.graph import Graph, Node, Edge
 
 class BuildGraphStrategy(ABC):
     @abstractmethod
-    def build(graph,data) -> Graph:
+    def build_graph(graph) -> Graph:
         pass
 
 
 class DefaultBuildGraphStrategy(BuildGraphStrategy):
-    def build(self, graph):
+    def build_graph(self, graph):
         return graph
 
 
@@ -19,7 +19,7 @@ class BuildUDGraphStrategy(BuildGraphStrategy):
             if word.deprel == 'root':
                 return word.id - 1
         
-    def build(self, graph):
+    def build_graph(self, graph):
         ud_sentence = graph.doc
         root = self.find_root_from_ud(ud_sentence)
         graph.set_root(root)
@@ -45,7 +45,7 @@ class BuildUDGraphStrategy(BuildGraphStrategy):
     
 
 class BuildAMRGraphStrategy(BuildGraphStrategy):
-    def build(self, graph):
+    def build_graph(self, graph):
         amr_penman_graph = graph.doc
         variables = list(sorted(amr_penman_graph.variables()))
         var_to_index = {var: i for i, var in enumerate(variables)}

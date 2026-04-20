@@ -4,7 +4,7 @@ class Graph():
         self.edges = []
         self.root = None
         self.doc = doc
-        build_strategy.build(self)
+        build_strategy.build_graph(self)
 
     def set_root(self, root):
         self.root = root
