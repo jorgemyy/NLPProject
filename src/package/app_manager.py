@@ -49,10 +49,10 @@ class AppManager():
             num_columns = len(df.columns)
 
             print("\nSort by any of the following?")
-            print(f"You can choose multiple options, press {num_columns+2} when finished")
+            print(f"You can choose multiple options, press {num_columns+2} when finished\n")
 
             for (x, column) in enumerate(df):
-                print("\n" + str(x+1) + ". " + column)
+                print(str(x+1) + ". " + column)
                 possible_sort_options.append(str(x+1))
     
             print(str(num_columns+2) + ". " + "Done Selecting")
@@ -136,9 +136,9 @@ class AppManager():
 
         executor = Executor(pipeline)
         
-        accuracy = executor.run(cap=cap)
+        accuracy, fscore = executor.run(cap=cap)
         cap = "None" if cap==None else cap
-        results = [model.get_name(), graph_type, feature_extractor.get_name()[1:], batch_size, epochs, hidden_layer_dim, cap, accuracy]
+        results = [model.get_name(), graph_type, feature_extractor.get_name()[1:], batch_size, epochs, hidden_layer_dim, cap, accuracy, fscore]
         
         with open('src/output.csv', mode='a', newline='') as file:
             writer = csv.writer(file)

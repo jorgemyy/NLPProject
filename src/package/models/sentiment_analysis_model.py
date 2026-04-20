@@ -1,10 +1,11 @@
 from torch import nn
+import torch
 from torch_geometric.nn import GCNConv, global_mean_pool
+from torch_geometric.loader import DataLoader
 import torch.nn.functional as F
 from kagglehub import KaggleDatasetAdapter
 import kagglehub
-import torch
-from torch_geometric.loader import DataLoader
+from sklearn.metrics import f1_score
 
 class SentimentAnalysis(nn.Module):
     def __init__(self, num_node_features, num_classes, out_dim):
@@ -91,4 +92,6 @@ class SentimentAnalysisModel():
         all_labels = torch.cat(all_labels)
         
         accuracy = (all_preds == all_labels).sum().item() / len(all_labels)
-        return accuracy
+        fscore = f1_score(all_labels, all_preds)
+
+        return accuracy, fscore

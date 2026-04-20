@@ -1,4 +1,1 @@
-Model,Graph,Features,Batch,Epochs,Hidden Dim,Cap,Accuracy
-Sentiment Analysis,ud,ID,16,200,16,10,0.5
-Sentiment Analysis,amr,ID/root/in_labels/out_labels,16,200,16,10,0.5
-Sentiment Analysis,ud,ID/root/in_labels/out_labels,16,100,16,20,0.25
+Model,Graph,Features,Batch,Epochs,Hidden Dim,Cap,Accuracy,Fscore
