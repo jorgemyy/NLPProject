@@ -32,6 +32,8 @@ class Graph():
                 id=node.id + offset,
                 text=node.text,
                 root=node.root,
+                node_type=node.node_type,
+                negated=node.negated,
                 incoming_edge_labels=node.incoming_edge_labels,  
                 outgoing_edge_labels=node.outgoing_edge_labels
             )
@@ -54,12 +56,14 @@ class Edge:
 
 
 class Node:
-    def __init__(self, text, id, root, outgoing_edge_labels=None, incoming_edge_labels=None):
+    def __init__(self, text, id, root, node_type, negated, outgoing_edge_labels=None, incoming_edge_labels=None):
         self.id = id
         self.text = text
         self.root = root
         self.outgoing_edge_labels = outgoing_edge_labels if outgoing_edge_labels is not None else []
         self.incoming_edge_labels = incoming_edge_labels if incoming_edge_labels is not None else []
+        self.node_type = node_type
+        self.negated = negated
 
     def add_outgoing_edge_label(self, label):
         self.outgoing_edge_labels.append(label)

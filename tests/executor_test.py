@@ -15,7 +15,7 @@ def test_ud_model(nlp, full_feature_extractor, embedding_model):
     pipeline = DataPipeline(sentiment_analysis_model, ud_builder, full_feature_extractor, embedding_model)
     
     executor = Executor(pipeline)
-    acc, fscore = executor.run(cap=10) 
+    acc, fscore, cm = executor.run(cap=10) 
 
     assert acc <= 1
     assert acc >= 0
@@ -34,7 +34,7 @@ def test_amr_model(stog, full_feature_extractor, embedding_model):
     pipeline = DataPipeline(sentiment_analysis_model, amr_builder, full_feature_extractor, embedding_model)
     
     executor = Executor(pipeline)
-    acc, fscore = executor.run(cap=10) 
+    acc, fscore, cm = executor.run(cap=10) 
 
     assert acc <= 1
     assert acc >= 0

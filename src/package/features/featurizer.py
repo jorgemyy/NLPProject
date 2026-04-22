@@ -4,19 +4,9 @@ import numpy as np
 import gensim.downloader as gd
 
 class FeatureContext:
-    def __init__(self, labels_encoder, embedding_model):
-        self.labels_encoder = labels_encoder
+    def __init__(self, embedding_model, node_type_encoder):
         self.embedding_model = embedding_model
-
-    def one_hot_encode(self, edge_labels):
-        num_labels = len(self.labels_encoder.categories_[0])
-        edge_vec = torch.zeros(num_labels, dtype=torch.float32)
-
-        for label in edge_labels:
-            idx = self.labels_encoder.transform([[label]])[0].argmax()
-            edge_vec[idx] = 1.0
-
-        return edge_vec
+        self.node_type_encoder = node_type_encoder
 
     def get_word_embeddings(self, node):
         word = node.text.lower()
@@ -24,24 +14,23 @@ class FeatureContext:
         if word in self.embedding_model:
             return torch.tensor(self.embedding_model[word], dtype=torch.float32)
         return torch.zeros(dim, dtype=torch.float32)
+        
+
+    def one_hot_encode_node_type(self, label):
+        return torch.tensor(self.node_type_encoder.transform([[label]])[0], dtype=torch.float32)
     
 
-
-def get_features(graphs,feature_extractor,embedding_model): 
-    labels_encoder = fit_one_hot_encoding(graphs)
-    context = FeatureContext(labels_encoder, embedding_model)
-    return [get_features_from_graph(graph, feature_extractor, context) for graph in graphs]
-
-
-def fit_one_hot_encoding(graphs):
+def fit_one_hot_encoding(list):
     labels_encoder = OneHotEncoder(sparse_output=False, handle_unknown="ignore")
-
-    list_of_labels = [label for graph in graphs for label in graph.get_edge_labels()]
-    labels_list_2d =  np.array(list_of_labels).reshape(-1,1)
-
-    labels_encoder.fit(labels_list_2d)
-
+    list_2d =  np.array(list).reshape(-1,1)
+    labels_encoder.fit(list_2d)
     return labels_encoder
+
+
+def get_features(graphs, feature_extractor, embedding_model): 
+    node_type_encoder = fit_one_hot_encoding([node.node_type for graph in graphs for node in graph.nodes])
+    context = FeatureContext(embedding_model, node_type_encoder)
+    return [get_features_from_graph(graph, feature_extractor, context) for graph in graphs]
 
 
 def get_features_from_graph(graph, feature_extractor, context):

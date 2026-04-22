@@ -235,17 +235,17 @@ class AppManager():
         print("\nCustomize Features")
         print("You can choose multiple options, press 6 when finished")
         print("1. Normalized Word ID (recommended for UD but not AMR)")
-        print("2. Normalized Distance from Root (recommended for UD but not AMR)")
-        print("3. Multi-hot Encoded Incoming Edge Labels (not recommended, made redundant by RGCN switch)")
-        print("4. Multi-hot Encoded Outgoing Edge Labels (not recommended, made redundant by RGCN switch)")
+        print("2. Normalized Root")
+        print("3. One Hot Encoded Node Type (POS for UD, context type for AMR)")
+        print("4. Negated Nodes")
         print("5. Word / Concept Embedding (recommended)")
         print("6. Done Selecting")
         print("7. Back")
 
         feature_choices_options = {'1': FeatureExtractorBuilder.add_id,
-                                   '2': FeatureExtractorBuilder.add_root_distance,
-                                   '3': FeatureExtractorBuilder.add_incoming_labels,
-                                   '4': FeatureExtractorBuilder.add_outgoing_labels,
+                                   '2': FeatureExtractorBuilder.add_root,
+                                   '3': FeatureExtractorBuilder.add_type,
+                                   '4': FeatureExtractorBuilder.add_neg,
                                    '5': FeatureExtractorBuilder.add_embedding}
 
         feature_choices_list = []

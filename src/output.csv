@@ -1,3 +1,6 @@
 ID,Model,Graph,Cap,Accuracy,Fscore
 0,Sentiment Analysis,ud,100,0.45,0.4434
 1,Sentiment Analysis,ud,100,0.5,0.5081
+2,Sentiment Analysis,amr,300,0.3667,0.3391
+3,Sentiment Analysis,ud,1000,0.525,0.5279
+4,Sentiment Analysis,ud,200,0.575,0.5831

@@ -35,9 +35,9 @@ def gettys_text():
 def full_feature_extractor():
     feature_extractor = (FeatureExtractorBuilder()
                          .add_id()
-                         .add_root_distance()
-                         .add_incoming_labels()
-                         .add_outgoing_labels()
+                         .add_root()
+                         .add_type()
+                         .add_neg()
                          .add_embedding()
                          .build())
     return feature_extractor

@@ -11,8 +11,8 @@ from package.graphs.graph_builder_factory import GraphBuilderFactory
 def test_get_word_embeddings(embedding_model):
     """check if a given word is embedded"""
     word = "born"
-    node = Node(id = 0, text = word, root = 0)
-    featurizer_context = FeatureContext(labels_encoder=None, embedding_model=embedding_model)
+    node = Node(id = 0, text = word, root = 0, node_type='', negated=True)
+    featurizer_context = FeatureContext(node_type_encoder=None, embedding_model=embedding_model)
     embedding = featurizer_context.get_word_embeddings(node)
     assert word in embedding_model
     assert type(embedding) == torch.Tensor
@@ -22,8 +22,8 @@ def test_get_word_embeddings(embedding_model):
 def test_get_word_embeddings_word_not_in_vocab(embedding_model):
     """check if a given made up is all 0s"""
     word = "garblebleekster"
-    node = Node(id = 0, text = word, root = 0)
-    featurizer_context = FeatureContext(labels_encoder=None, embedding_model=embedding_model)
+    node = Node(id = 0, text = word, root = 0, node_type='', negated=True)
+    featurizer_context = FeatureContext(node_type_encoder=None, embedding_model=embedding_model)
     embedding = featurizer_context.get_word_embeddings(node)
     assert word not in embedding_model
     assert type(embedding) == torch.Tensor
@@ -38,38 +38,36 @@ def test_get_features_from_ud_graph_all_features(obama_sentence, nlp, embedding_
     ud_obama_graphs = ud_graph_builder.make_graphs(obama_sentence)
     test_graph = ud_obama_graphs[0]
 
-    labels_encoder = featurizer.fit_one_hot_encoding(ud_obama_graphs)
-    featurizer_context = FeatureContext(labels_encoder=labels_encoder, embedding_model=embedding_model)
+    node_type_encoder = featurizer.fit_one_hot_encoding([node.node_type for graph in ud_obama_graphs for node in graph.nodes])
+    featurizer_context = FeatureContext(node_type_encoder=node_type_encoder, embedding_model=embedding_model)
 
     features = featurizer.get_features_from_graph(test_graph,full_feature_extractor,featurizer_context)
     assert type(features) == torch.Tensor
 
     """check structural features"""
-    first_word_id = test_graph.nodes[0].id
     num_words = len(test_graph.nodes)
-    root = test_graph.root
+    root = test_graph.root + 1
     first_sentence_features = features[0]
     assert torch.isclose(first_sentence_features[0], torch.tensor(1 / num_words)) # normalized id
-    assert torch.isclose(first_sentence_features[1], torch.tensor((first_word_id - root)/ num_words)) # distance from root
+    assert torch.isclose(first_sentence_features[1], torch.tensor(root / num_words)) # normalized root
 
     """check shape of node features"""
-    edge_labels = [label for graph in ud_obama_graphs for label in graph.get_edge_labels()]
-    num_total_edge_labels = len(set(edge_labels)) * 2 
-    incoming_and_outgoing = 2
     num_structural_features = 2 # id, root
-    num_node_features = num_structural_features + num_total_edge_labels + incoming_and_outgoing + embedding_model.vector_size 
+    num_node_types = len(set([node.node_type for graph in ud_obama_graphs for node in graph.nodes]))
+    num_semantic_features = 1 + num_node_types # neg
+    num_node_features = num_structural_features + num_semantic_features + embedding_model.vector_size 
     assert features.shape == (num_words,num_node_features)
 
 
 def test_featurizer_decorator():
     feature_extractor = (FeatureExtractorBuilder()
-                         .add_incoming_labels()
-                         .add_outgoing_labels()
+                         .add_neg()
+                         .add_type()
                          .build())
 
     """check get_name"""
     to_string = feature_extractor.get_name()
-    assert "in_labels" in to_string
+    assert "negation" in to_string
     assert "embedding" not in to_string
 
 
@@ -80,81 +78,51 @@ def test_get_features_from_amr_graph_all_features(obama_sentence, stog, embeddin
     amr_obama_graphs = amr_graph_builder.make_graphs(obama_sentence)
     test_graph = amr_obama_graphs[0]
 
-    labels_encoder = featurizer.fit_one_hot_encoding(amr_obama_graphs)
-    featurizer_context = FeatureContext(labels_encoder=labels_encoder, embedding_model=embedding_model)
+    node_type_encoder = featurizer.fit_one_hot_encoding([node.node_type for graph in amr_obama_graphs for node in graph.nodes])
+    featurizer_context = FeatureContext(node_type_encoder=node_type_encoder, embedding_model=embedding_model)
     
     features = featurizer.get_features_from_graph(test_graph,full_feature_extractor,featurizer_context)
     assert type(features) == torch.Tensor
 
     """check structural features"""
-    first_word_id = test_graph.nodes[0].id
     num_words = len(test_graph.nodes)
-    root = test_graph.root 
+    root = test_graph.root + 1
     first_sentence_features = features[0]
     assert torch.isclose(first_sentence_features[0], torch.tensor(1 / num_words)) # normalized id
-    assert torch.isclose(first_sentence_features[1], torch.tensor((first_word_id - root) / num_words))
+    assert torch.isclose(first_sentence_features[1], torch.tensor(root / num_words)) # roots
 
     """check shape of node features"""
-    edge_labels = [label for graph in amr_obama_graphs for label in graph.get_edge_labels()]
-    num_total_edge_labels = len(set(edge_labels)) * 2 
-    incoming_and_outgoing = 2
     num_structural_features = 2 # id, root
-    num_node_features = num_structural_features + num_total_edge_labels + incoming_and_outgoing + embedding_model.vector_size
+    num_node_types = len(set([node.node_type for graph in amr_obama_graphs for node in graph.nodes]))
+    num_semantic_features = 1 + num_node_types # neg
+    num_node_features = num_structural_features + num_semantic_features + embedding_model.vector_size 
     assert features.shape == (num_words,num_node_features)
 
 
-def test_get_features_from_amr_graph_only_edge_features(obama_sentence, stog, embedding_model):
+def test_get_features_from_amr_graph_no_embedding(obama_sentence, stog, embedding_model):
     graph_builder_factory = GraphBuilderFactory()
     amr_graph_builder = graph_builder_factory.create_AMR_Builder(stog)
     amr_obama_graphs = amr_graph_builder.make_graphs(obama_sentence)
     test_graph = amr_obama_graphs[0]
     
-    labels_encoder = featurizer.fit_one_hot_encoding(amr_obama_graphs)
-    featurizer_context = FeatureContext(labels_encoder=labels_encoder, embedding_model=embedding_model)
+    node_type_encoder = featurizer.fit_one_hot_encoding([node.node_type for graph in amr_obama_graphs for node in graph.nodes])
+    featurizer_context = FeatureContext(node_type_encoder=node_type_encoder, embedding_model=embedding_model)
     feature_extractor = (FeatureExtractorBuilder()
-                         .add_incoming_labels()
-                         .add_outgoing_labels()
+                         .add_neg()
+                         .add_type()
+                         .add_id()
+                         .add_root()
                          .build())
     
     features = featurizer.get_features_from_graph(test_graph,feature_extractor,featurizer_context)
-
-    """check edge features"""
     num_words = len(test_graph.nodes)
-    edge_labels = [label for graph in amr_obama_graphs for label in graph.get_edge_labels()]
-    first_sentence_features = features[0]
-    num_edge_labels = len(set(edge_labels))
-    incoming_edge_multi_hot = first_sentence_features[:num_edge_labels]
-    incoming_edge_num = first_sentence_features[num_edge_labels]
-    assert sum(incoming_edge_multi_hot) == incoming_edge_num
 
     """check shape of node features"""
-    num_total_edge_labels = len(set(edge_labels)) * 2 
-    incoming_and_outgoing = 2
-    num_node_features = num_total_edge_labels + incoming_and_outgoing
+    num_structural_features = 2 # id, root
+    num_node_types = len(set([node.node_type for graph in amr_obama_graphs for node in graph.nodes]))
+    num_semantic_features = 1 + num_node_types # neg
+    num_node_features = num_structural_features + num_semantic_features
     assert features.shape == (num_words,num_node_features)
-
-
-def test_one_hot_encoding_on_gettysburg(gettys_text, stog):
-    graph_builder_factory = GraphBuilderFactory()
-    amr_graph_builder = graph_builder_factory.create_AMR_Builder(stog)
-    amr_gettys_graphs = amr_graph_builder.make_graphs(gettys_text)
-    test_graph = amr_gettys_graphs[0]
-
-    """check one hot encoding of parts of speech"""
-    edge_labels = [label for graph in amr_gettys_graphs for label in graph.get_edge_labels()]
-    num_edge_labels= len(set(edge_labels))
-
-    labels_encoder = featurizer.fit_one_hot_encoding(amr_gettys_graphs)
-    featurizer_context = FeatureContext(labels_encoder=labels_encoder, embedding_model=None)
-
-    first_node_of_speech = test_graph.nodes[0]
-    incoming_edges_vec = featurizer_context.one_hot_encode(first_node_of_speech.incoming_edge_labels)
-    outgoing_edges_vec = featurizer_context.one_hot_encode(first_node_of_speech.outgoing_edge_labels)
-
-    assert len(incoming_edges_vec) == num_edge_labels
-    assert len(outgoing_edges_vec) == num_edge_labels
-    assert len([v for v in incoming_edges_vec if v == 1]) == len(first_node_of_speech.incoming_edge_labels)
-    assert len([v for v in outgoing_edges_vec if v == 1]) == len(first_node_of_speech.outgoing_edge_labels)
 
 
 def test_featurizer_on_gettysburg_by_sentence(gettys_text,nlp,embedding_model,full_feature_extractor):
@@ -165,11 +133,10 @@ def test_featurizer_on_gettysburg_by_sentence(gettys_text,nlp,embedding_model,fu
     
     features = featurizer.get_features(ud_gettys_graphs,full_feature_extractor,embedding_model)
 
-    edge_labels = [label for graph in ud_gettys_graphs for label in graph.get_edge_labels()]
-    num_total_edge_labels = len(set(edge_labels)) * 2 
-    incoming_and_outgoing = 2
-    num_normalized_features = 2 # id, root
-    num_node_features = num_normalized_features + num_total_edge_labels + incoming_and_outgoing + embedding_model.vector_size
+    num_structural_features = 2 # id, root
+    num_node_types = len(set([node.node_type for graph in ud_gettys_graphs for node in graph.nodes]))
+    num_semantic_features = 1 + num_node_types # neg
+    num_node_features = num_structural_features + num_semantic_features + embedding_model.vector_size 
     
     ud_gettys_doc = ud_graph_builder.parse_strategy.parse(gettys_text)
     num_nodes_in_first_graph = len(ud_gettys_doc[0].words)
@@ -187,11 +154,10 @@ def test_featurizer_on_gettysburg_using_merge(gettys_text,nlp,embedding_model,fu
 
     features = featurizer.get_features([gettys_merged_graph],full_feature_extractor,embedding_model)
 
-    edge_labels = [label for label in gettys_merged_graph.get_edge_labels()]
-    num_total_edge_labels = len(set(edge_labels)) * 2 
-    incoming_and_outgoing = 2
-    num_normalized_features = 2 # id, root
-    num_node_features = num_normalized_features + num_total_edge_labels + incoming_and_outgoing + embedding_model.vector_size
+    num_structural_features = 2 # id, root
+    num_node_types = len(set([node.node_type for node in gettys_merged_graph.nodes]))
+    num_semantic_features = 1 + num_node_types # neg
+    num_node_features = num_structural_features + num_semantic_features + embedding_model.vector_size 
     
     ud_gettys_doc = ud_graph_builder.parse_strategy.parse(gettys_text)
     num_nodes_in_doc = sum([len(ud_gettys_sentence.words) for ud_gettys_sentence in ud_gettys_doc])

@@ -29,23 +29,44 @@ class BuildUDGraphStrategy(BuildGraphStrategy):
             newNode = Node(id = word.id - 1,
                             text = word.text,
                             root = root,
+                            node_type = word.upos,
+                            negated = False
                             )
             newNode.add_incoming_edge_label(word.deprel)
             graph.add_node(newNode)
 
             if word.head != 0:
                 newEdge = Edge(source = word.head-1,
-                            target = word.id-1,
+                            target = word.id-1, 
                             label = word.deprel)
                 graph.add_edge(newEdge)
 
+                newRevEdge = Edge(source=word.id-1,
+                        target=word.head-1,
+                        label=word.deprel + "_rev")
+                graph.add_edge(newRevEdge)
+            
+
         for edge in graph.edges:
             graph.nodes[edge.source].add_outgoing_edge_label(graph.nodes[edge.target].incoming_edge_labels[0])
+
+            if words[edge.source].feats and "=Neg" in words[edge.source].feats:
+                graph.nodes[edge.target].negated = True
         
         return graph
     
 
 class BuildAMRGraphStrategy(BuildGraphStrategy):
+    def get_concept_type(self, concept):
+        concept = concept.split("-")[-1] if "-" in concept else concept
+        if concept.isdigit():
+            return "predicate"
+        elif concept in {"possible", "likely", "necessary", "obligate", "desire"}:
+            return "modal"
+        else:
+            return "entity"
+
+
     def build_graph(self, graph):
         amr_penman_graph = graph.doc
         variables = list(sorted(amr_penman_graph.variables()))
@@ -54,10 +75,14 @@ class BuildAMRGraphStrategy(BuildGraphStrategy):
         root = var_to_index[amr_penman_graph.top]
         graph.set_root(root)
 
+        neg_nodes = [a.source for a in amr_penman_graph.attributes() if (a.role==':polarity' and a.target=='-')]
+
         for label,rel,concept in amr_penman_graph.instances():
             newNode = Node(id = var_to_index[label],
                         text = "".join([char for char in concept if not char.isdigit() and char != '-']),
-                        root = root
+                        root = root,
+                        negated = label in neg_nodes,
+                        node_type = self.get_concept_type(concept)
                         )
             graph.add_node(newNode)
         
@@ -68,6 +93,12 @@ class BuildAMRGraphStrategy(BuildGraphStrategy):
                         target=target,
                         label=edge.role)
             graph.add_edge(newEdge)
+
+            newRevEdge = Edge(source=target,
+                        target=source,
+                        label=edge.role + "_rev")
+            graph.add_edge(newRevEdge)
+            
             graph.nodes[target].add_incoming_edge_label(edge.role)
             graph.nodes[source].add_outgoing_edge_label(edge.role)
 

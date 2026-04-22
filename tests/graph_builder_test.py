@@ -15,7 +15,7 @@ def test_make_graphs_from_amr(gettys_text, stog):
     """test graph features"""
     amr_gettys_doc = amr_graph_builder.parse_strategy.parse(gettys_text)
     num_concepts = sum([len(sentence.variables()) for sentence in amr_gettys_doc])
-    num_edges = sum([len(sentence.edges()) for sentence in amr_gettys_doc])
+    num_edges = sum([len(sentence.edges()) for sentence in amr_gettys_doc]) 
 
     num_incoming_edges = 0
     num_outgoing_edges = 0
@@ -28,9 +28,9 @@ def test_make_graphs_from_amr(gettys_text, stog):
         num_edges_from_graph_objects += len(graph.edges)
 
     assert num_nodes == num_concepts
-    assert num_edges_from_graph_objects == num_edges
+    assert num_edges_from_graph_objects == num_edges * 2
     assert num_outgoing_edges == num_edges
-    assert num_incoming_edges == num_edges
+    assert num_incoming_edges == num_edges 
 
 
 def test_make_and_merge_graphs_from_ud(gettys_text, nlp):

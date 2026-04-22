@@ -1,4 +1,5 @@
 import torch
+from package.features import featurizer
 
 class FeatureExtractor():
     def featurize(self, node, graph, context):
@@ -16,20 +17,20 @@ class FeatureExtractorBuilder():
         self.extractor = IDDecorator(self.extractor)
         return self
     
-    def add_root_distance(self):
-        self.extractor = RootDistanceDecorator(self.extractor)
-        return self
-    
-    def add_incoming_labels(self):
-        self.extractor = IncomingEdgeLabelDecorator(self.extractor)
-        return self
-    
-    def add_outgoing_labels(self):
-        self.extractor = OutgoingEdgeLabelDecorator(self.extractor)
+    def add_root(self):
+        self.extractor = RootDecorator(self.extractor)
         return self
     
     def add_embedding(self):
         self.extractor = EmbeddingDecorator(self.extractor)
+        return self
+    
+    def add_type(self):
+        self.extractor = NodeTypeDecorator(self.extractor)
+        return self
+    
+    def add_neg(self):
+        self.extractor = NegationDecorator(self.extractor)
         return self
     
     def build(self):
@@ -41,7 +42,7 @@ class FeatureDecorator(FeatureExtractor):
         self.wrapped = wrapped
 
     def featurize(self, node, graph, context):
-        return self.wrapped.featurize(node,graph,context)
+        return self.wrapped.featurize(node, graph, context)
     
     def get_name(self):
         return self.wrapped.get_name()
@@ -50,7 +51,7 @@ class FeatureDecorator(FeatureExtractor):
 class IDDecorator(FeatureDecorator):
     def featurize(self, node, graph, context):
         normalized_id = torch.tensor([(node.id+1) / len(graph.nodes)], dtype=torch.float32)
-        features = super().featurize(node,graph,context)
+        features = super().featurize(node, graph, context)
         features.append(normalized_id)
         return features
     
@@ -58,10 +59,10 @@ class IDDecorator(FeatureDecorator):
         return super().get_name() + '/ID'
     
 
-class RootDistanceDecorator(FeatureDecorator):
+class RootDecorator(FeatureDecorator):
     def featurize(self, node, graph, context):
-        normalized_distance_from_root = torch.tensor([(node.id - node.root) / len(graph.nodes)], dtype=torch.float32)
-        features = super().featurize(node,graph,context)
+        normalized_distance_from_root = torch.tensor([(node.root+1) / len(graph.nodes)], dtype=torch.float32)
+        features = super().featurize(node, graph, context)
         features.append(normalized_distance_from_root)
         return features
     
@@ -69,6 +70,39 @@ class RootDistanceDecorator(FeatureDecorator):
         return super().get_name() + '/root'
     
 
+class EmbeddingDecorator(FeatureDecorator):
+    def featurize(self, node, graph, context):
+        word_embedding = context.get_word_embeddings(node)
+        features = super().featurize(node, graph, context)
+        features.append(word_embedding)
+        return features
+    
+    def get_name(self):
+        return super().get_name() + '/embedding'
+    
+
+class NodeTypeDecorator(FeatureDecorator):
+    def featurize(self, node, graph, context):
+        encoding = context.one_hot_encode_node_type(node.node_type)
+        features = super().featurize(node, graph, context)
+        features.append(encoding)
+        return features
+    
+    def get_name(self):
+        return super().get_name() + '/node_type'
+    
+    
+class NegationDecorator(FeatureDecorator):
+    def featurize(self, node, graph, context):
+        features = super().featurize(node, graph, context)
+        features.append(torch.tensor([node.negated], dtype=torch.float32))
+        return features 
+
+    def get_name(self):
+        return super().get_name() + '/negation'
+
+
+'''
 class IncomingEdgeLabelDecorator(FeatureDecorator):
     def featurize(self, node, graph, context):
         incoming_edge_label_vecs = context.one_hot_encode(node.incoming_edge_labels)
@@ -91,14 +125,5 @@ class OutgoingEdgeLabelDecorator(FeatureDecorator):
     
     def get_name(self):
         return super().get_name() + '/out_labels'
-    
 
-class EmbeddingDecorator(FeatureDecorator):
-    def featurize(self, node, graph, context):
-        word_embedding = context.get_word_embeddings(node)
-        features = super().featurize(node,graph,context)
-        features.append(word_embedding)
-        return features
-    
-    def get_name(self):
-        return super().get_name() + '/embedding'
+'''
