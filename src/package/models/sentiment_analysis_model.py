@@ -1,8 +1,7 @@
 from torch import nn
 import torch
-from torch_geometric.nn import RGCNConv, global_mean_pool
+from torch_geometric.nn import RGCNConv, global_mean_pool, global_max_pool
 from torch_geometric.loader import DataLoader
-import torch.nn.functional as F
 from kagglehub import KaggleDatasetAdapter
 import kagglehub
 from sklearn.metrics import f1_score, confusion_matrix
@@ -14,19 +13,26 @@ class SentimentAnalysis(nn.Module):
         self.conv2 = RGCNConv(out_dim, out_dim, num_relations)
         self.conv3 = RGCNConv(out_dim, out_dim, num_relations)
 
-        self.classifier = nn.Linear(out_dim, num_classes)
+        self.bn1 = nn.BatchNorm1d(out_dim)
+        self.bn2 = nn.BatchNorm1d(out_dim)
+        self.bn3 = nn.BatchNorm1d(out_dim)
+
+        self.relu = nn.ReLU()
+
+        self.dropout = nn.Dropout(p=0.3)
+
+        self.classifier = nn.Linear(out_dim * 2, num_classes)
 
     def forward(self, data):
         x, edge_index, batch, edge_type = data.x, data.edge_index, data.batch, data.edge_type
 
-        x = self.conv1(x, edge_index, edge_type)
-        x = F.relu(x)
-        x = F.dropout(x, training = self.training)
-        x = self.conv2(x, edge_index, edge_type)
-        x = F.relu(x)
-        x = self.conv3(x, edge_index, edge_type)
+        x = self.dropout(self.relu(self.bn1(self.conv1(x, edge_index, edge_type))))
+        x = self.dropout(self.relu(self.bn2(self.conv2(x, edge_index, edge_type))))
+        x = self.dropout(self.relu(self.bn3(self.conv3(x, edge_index, edge_type))))
 
-        x = global_mean_pool(x, batch=batch)
+        x_mean = global_mean_pool(x, batch)
+        x_max = global_max_pool(x, batch)
+        x = torch.cat([x_mean, x_max], dim=-1)
 
         return self.classifier(x) 
     

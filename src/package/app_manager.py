@@ -113,7 +113,7 @@ class AppManager():
             except: 
                 return
 
-        run_id = printed_df['ID'].iloc[row]
+        run_id = row
         self.saved_state_manager.show_run_details(run_id)
         
         return
@@ -234,11 +234,11 @@ class AppManager():
     def get_feature_extractor(self):
         print("\nCustomize Features")
         print("You can choose multiple options, press 6 when finished")
-        print("1. Normalized Word ID (position in the sentence)")
-        print("2. Normalized Distance from Root")
-        print("3. Multi-hot Encoded Incoming Edge Labels")
-        print("4. Multi-hot Encoded Outgoing Edge Labels")
-        print("5. Word / Concept Embedding")
+        print("1. Normalized Word ID (recommended for UD but not AMR)")
+        print("2. Normalized Distance from Root (recommended for UD but not AMR)")
+        print("3. Multi-hot Encoded Incoming Edge Labels (not recommended, made redundant by RGCN switch)")
+        print("4. Multi-hot Encoded Outgoing Edge Labels (not recommended, made redundant by RGCN switch)")
+        print("5. Word / Concept Embedding (recommended)")
         print("6. Done Selecting")
         print("7. Back")
 
@@ -291,9 +291,9 @@ class AppManager():
                 continue
 
         while True:
-            epochs_input = input("Number of epochs (default 200): ")
+            epochs_input = input("Number of epochs (default 100): ")
             if epochs_input == '':
-                epochs = 200
+                epochs = 100
                 break
             try:
                 epochs = int(epochs_input)
@@ -302,9 +302,9 @@ class AppManager():
                 continue
 
         while True:
-            hidden_dim_input = input("Hidden layer dimension (default 16): ")
+            hidden_dim_input = input("Hidden layer dimension (default 128): ")
             if hidden_dim_input == '':
-                hidden_layer_dim = 16
+                hidden_layer_dim = 128
                 break
             try:
                 hidden_layer_dim = int(hidden_dim_input)
