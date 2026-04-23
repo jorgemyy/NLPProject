@@ -130,7 +130,7 @@ class AppManager():
         if graph_type is None:
             return 
         
-        feature_extractor = self.get_feature_extractor()
+        feature_extractor, compressed_embedding_size = self.get_feature_extractor()
         if feature_extractor is None:
             return
 
@@ -153,7 +153,7 @@ class AppManager():
         executor = Executor(pipeline)
         
         start = time.time()
-        accuracy, fscore, cm = executor.run(cap=cap)
+        accuracy, fscore, cm = executor.run(cap,compressed_embedding_size)
         end = time.time()
 
         cap = "None" if cap==None else cap
@@ -174,6 +174,7 @@ class AppManager():
             "batch_size": batch_size,
             "epochs": epochs,
             "hidden_layer_dim": hidden_layer_dim,
+            "embedding_feature_size": compressed_embedding_size,
             "confusion_matrix": cm,
             "run_time": end-start
         }
@@ -267,13 +268,26 @@ class AppManager():
                 print("Added feature")
                 feature_choices_list.append(feature_choice)
 
+        compressed_embedding_size = None
+        if '5' in feature_choices_list:
+            while True:
+                compressed_embedding_input = input("Compressed embedding size (default 10): ")
+                if compressed_embedding_input == '':
+                    compressed_embedding_size = 10
+                    break
+                try:
+                    compressed_embedding_size = int(compressed_embedding_input)
+                    break
+                except ValueError:
+                    continue
+
         feature_extractor = FeatureExtractorBuilder()
         for feature_choice in feature_choices_list:
             add_feature = feature_choices_options[feature_choice]
             add_feature(feature_extractor)
         feature_extractor = feature_extractor.build()
 
-        return feature_extractor
+        return feature_extractor, compressed_embedding_size
         
 
     def get_parameters(self):

@@ -7,9 +7,10 @@ import kagglehub
 from sklearn.metrics import f1_score, confusion_matrix
 
 class SentimentAnalysis(nn.Module):
-    def __init__(self, num_node_features, num_classes, out_dim, num_relations):
+    def __init__(self, num_node_features, num_classes, out_dim, num_relations, compressed_embedding_dim, embedding_dim):
         super().__init__()
-        self.conv1 = RGCNConv(num_node_features, out_dim, num_relations)
+        num_node_features = num_node_features - embedding_dim + compressed_embedding_dim if compressed_embedding_dim != None else num_node_features
+        self.conv1 = RGCNConv(num_node_features, out_dim, num_relations) 
         self.conv2 = RGCNConv(out_dim, out_dim, num_relations)
         self.conv3 = RGCNConv(out_dim, out_dim, num_relations)
 
@@ -23,8 +24,18 @@ class SentimentAnalysis(nn.Module):
 
         self.classifier = nn.Linear(out_dim * 2, num_classes)
 
+        self.compress_embedding = nn.Linear(embedding_dim, compressed_embedding_dim) if compressed_embedding_dim != None else None
+        self.embedding_dim = embedding_dim
+
+
     def forward(self, data):
         x, edge_index, batch, edge_type = data.x, data.edge_index, data.batch, data.edge_type
+
+        if self.compress_embedding != None:
+            emb_x = x[:, :self.embedding_dim]
+            other_x = x[:, self.embedding_dim:]
+            emb_x = self.compress_embedding(emb_x)
+            x = torch.cat([emb_x, other_x], dim=-1)
 
         x = self.dropout(self.relu(self.bn1(self.conv1(x, edge_index, edge_type))))
         x = self.dropout(self.relu(self.bn2(self.conv2(x, edge_index, edge_type))))
@@ -45,8 +56,8 @@ class SentimentAnalysisModel():
         self.epochs = epochs
         self.out_dim = out_dim
 
-    def build_model(self, num_node_features, num_relations):
-        self.model = SentimentAnalysis(num_node_features, self.num_classes, self.out_dim, num_relations)
+    def build_model(self, num_node_features, num_relations, compressed_embedding_dim=None, embedding_dim=None):
+        self.model = SentimentAnalysis(num_node_features, self.num_classes, self.out_dim, num_relations, compressed_embedding_dim, embedding_dim)
 
     def get_data(self):
         full_df = kagglehub.dataset_load(

@@ -12,6 +12,7 @@
         "batch_size": 16,
         "epochs": 200,
         "hidden_layer_dim": 16,
+        "embedding_feature_size": 100,
         "confusion_matrix": [
             [
                 0,

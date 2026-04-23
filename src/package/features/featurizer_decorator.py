@@ -1,9 +1,8 @@
 import torch
-from package.features import featurizer
 
 class FeatureExtractor():
     def featurize(self, node, graph, context):
-        return []
+        return {}
     
     def get_name(self):
         return ''
@@ -52,7 +51,7 @@ class IDDecorator(FeatureDecorator):
     def featurize(self, node, graph, context):
         normalized_id = torch.tensor([(node.id+1) / len(graph.nodes)], dtype=torch.float32)
         features = super().featurize(node, graph, context)
-        features.append(normalized_id)
+        features['id'] = normalized_id
         return features
     
     def get_name(self):
@@ -63,7 +62,7 @@ class RootDecorator(FeatureDecorator):
     def featurize(self, node, graph, context):
         normalized_distance_from_root = torch.tensor([(node.root+1) / len(graph.nodes)], dtype=torch.float32)
         features = super().featurize(node, graph, context)
-        features.append(normalized_distance_from_root)
+        features['root'] = normalized_distance_from_root
         return features
     
     def get_name(self):
@@ -74,7 +73,7 @@ class EmbeddingDecorator(FeatureDecorator):
     def featurize(self, node, graph, context):
         word_embedding = context.get_word_embeddings(node)
         features = super().featurize(node, graph, context)
-        features.append(word_embedding)
+        features['emb'] = word_embedding
         return features
     
     def get_name(self):
@@ -85,7 +84,7 @@ class NodeTypeDecorator(FeatureDecorator):
     def featurize(self, node, graph, context):
         encoding = context.one_hot_encode_node_type(node.node_type)
         features = super().featurize(node, graph, context)
-        features.append(encoding)
+        features['type_enc'] = encoding
         return features
     
     def get_name(self):
@@ -95,7 +94,7 @@ class NodeTypeDecorator(FeatureDecorator):
 class NegationDecorator(FeatureDecorator):
     def featurize(self, node, graph, context):
         features = super().featurize(node, graph, context)
-        features.append(torch.tensor([node.negated], dtype=torch.float32))
+        features['neg'] = (torch.tensor([node.negated], dtype=torch.float32))
         return features 
 
     def get_name(self):

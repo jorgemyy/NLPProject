@@ -6,7 +6,7 @@ import gensim.downloader as gd
 from package.features import featurizer 
 
 class DataPipeline():
-    def __init__(self, model, graph_builder, feature_extractor, embedding_model):
+    def __init__(self, model, graph_builder, feature_extractor, embedding_model=None):
         self.model = model
         self.graph_builder = graph_builder
         self.feature_extractor = feature_extractor

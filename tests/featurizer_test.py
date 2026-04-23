@@ -48,8 +48,8 @@ def test_get_features_from_ud_graph_all_features(obama_sentence, nlp, embedding_
     num_words = len(test_graph.nodes)
     root = test_graph.root + 1
     first_sentence_features = features[0]
-    assert torch.isclose(first_sentence_features[0], torch.tensor(1 / num_words)) # normalized id
-    assert torch.isclose(first_sentence_features[1], torch.tensor(root / num_words)) # normalized root
+    assert torch.isclose(first_sentence_features[100], torch.tensor(1 / num_words)) # normalized id
+    assert torch.isclose(first_sentence_features[101], torch.tensor(root / num_words)) # normalized root
 
     """check shape of node features"""
     num_structural_features = 2 # id, root
@@ -61,14 +61,14 @@ def test_get_features_from_ud_graph_all_features(obama_sentence, nlp, embedding_
 
 def test_featurizer_decorator():
     feature_extractor = (FeatureExtractorBuilder()
-                         .add_neg()
                          .add_type()
+                         .add_embedding()
                          .build())
 
     """check get_name"""
     to_string = feature_extractor.get_name()
-    assert "negation" in to_string
-    assert "embedding" not in to_string
+    assert "negation" not in to_string
+    assert "embedding" in to_string
 
 
 def test_get_features_from_amr_graph_all_features(obama_sentence, stog, embedding_model, full_feature_extractor):
@@ -88,8 +88,8 @@ def test_get_features_from_amr_graph_all_features(obama_sentence, stog, embeddin
     num_words = len(test_graph.nodes)
     root = test_graph.root + 1
     first_sentence_features = features[0]
-    assert torch.isclose(first_sentence_features[0], torch.tensor(1 / num_words)) # normalized id
-    assert torch.isclose(first_sentence_features[1], torch.tensor(root / num_words)) # roots
+    assert torch.isclose(first_sentence_features[100], torch.tensor(1 / num_words)) # normalized id
+    assert torch.isclose(first_sentence_features[101], torch.tensor(root / num_words)) # roots
 
     """check shape of node features"""
     num_structural_features = 2 # id, root

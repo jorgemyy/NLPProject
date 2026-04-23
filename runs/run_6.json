@@ -1,35 +1,35 @@
 {
     "summary": {
-        "run_id": 4,
+        "run_id": 6,
         "model_name": "Sentiment Analysis",
-        "graph_type": "ud",
-        "cap": 200,
-        "accuracy": 0.575,
-        "f1": 0.5831
+        "graph_type": "amr",
+        "cap": 100,
+        "accuracy": 0.4,
+        "f1": 0.3958
     },
     "details": {
         "features": "ID/root/node_type/negation/embedding",
         "batch_size": 16,
         "epochs": 100,
         "hidden_layer_dim": 128,
-        "embedding_feature_size": 100,
+        "embedding_feature_size": 10,
         "confusion_matrix": [
             [
-                5,
-                0,
-                3
-            ],
-            [
-                7,
-                9,
+                3,
+                2,
                 1
             ],
             [
-                1,
-                5,
-                9
+                3,
+                3,
+                1
+            ],
+            [
+                2,
+                3,
+                2
             ]
         ],
-        "run_time": 255.05984210968018
+        "run_time": 376.27230310440063
     }
 }
