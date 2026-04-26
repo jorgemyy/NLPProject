@@ -239,7 +239,7 @@ class AppManager():
         print("2. Normalized Root")
         print("3. One Hot Encoded Node Type (POS for UD, context type for AMR)")
         print("4. Negated Nodes")
-        print("5. Word / Concept Embedding (recommended)")
+        print("5. Word / Concept Embedding")
         print("6. Done Selecting")
         print("7. Back")
 
@@ -262,7 +262,7 @@ class AppManager():
 
             elif feature_choice == '7':
                 feature_choices_list = []
-                return None
+                return None, None
         
             else:
                 print("Added feature")

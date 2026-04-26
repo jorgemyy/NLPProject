@@ -1,0 +1,35 @@
+{
+    "summary": {
+        "run_id": 8,
+        "model_name": "Sentiment Analysis",
+        "graph_type": "amr",
+        "cap": 1000,
+        "accuracy": 0.55,
+        "f1": 0.5434
+    },
+    "details": {
+        "features": "root/node_type/negation/embedding",
+        "batch_size": 16,
+        "epochs": 100,
+        "hidden_layer_dim": 128,
+        "embedding_feature_size": 20,
+        "confusion_matrix": [
+            [
+                29,
+                37,
+                6
+            ],
+            [
+                11,
+                56,
+                9
+            ],
+            [
+                3,
+                24,
+                25
+            ]
+        ],
+        "run_time": 6708.82666015625
+    }
+}
