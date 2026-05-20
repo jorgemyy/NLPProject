@@ -27,3 +27,5 @@ share/python-wheels/
 .idea/
 
 results/
+
+venvs/
