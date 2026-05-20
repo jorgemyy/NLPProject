@@ -3,7 +3,7 @@ import os
 
 class SavedStateManager():
     def __init__(self):
-        self.RUNS_DIR = "runs"
+        self.RUNS_DIR = "results/runs"
 
     def ensure_runs_dir(self):
         if not os.path.exists(self.RUNS_DIR):

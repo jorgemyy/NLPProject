@@ -1,6 +1,6 @@
 import stanza
 
-from package.graphs.parse_text_strategies import*
+from nlp_core.graphs.parse_text_strategies import*
 
 def test_parse_ud(obama_sentence, nlp):
     """test if it is a list of UD sentences"""

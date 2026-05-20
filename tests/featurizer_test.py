@@ -1,10 +1,10 @@
 import torch
 
-from package.features.featurizer import FeatureContext
-from package.features import featurizer
-from package.graphs.graph import Node
-from package.features.featurizer_decorator import *
-from package.graphs.graph_builder_factory import GraphBuilderFactory
+from nlp_core.features.featurizer import FeatureContext
+from nlp_core.features import featurizer
+from nlp_core.graphs.graph import Node
+from nlp_core.features.featurizer_decorator import *
+from nlp_core.graphs.graph_builder_factory import GraphBuilderFactory
 
 
 

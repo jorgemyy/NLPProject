@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod 
-from package.graphs.graph import Graph, Node, Edge
+from nlp_core.graphs.graph import Graph, Node, Edge
 
 class BuildGraphStrategy(ABC):
     @abstractmethod

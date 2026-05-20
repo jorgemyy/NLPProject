@@ -2,14 +2,14 @@ import csv
 import pandas as pd 
 import time
 
-from package.models.model_factory import ModelFactory
-from package.features.featurizer_decorator import FeatureExtractorBuilder
-from package.executor import Executor
-from package.data_pipeline import DataPipeline
-from package.graphs.graph_builder_factory import GraphBuilderFactory
+from nlp_core.models.model_factory import ModelFactory
+from nlp_core.features.featurizer_decorator import FeatureExtractorBuilder
+from nlp_core.executor import Executor
+from nlp_core.data_pipeline import DataPipeline
+from nlp_core.graphs.graph_builder_factory import GraphBuilderFactory
 
 class AppManager():
-    def __init__(self, saved_state_manager, summary_file = 'output.csv', summary_file_dir = 'src/'):
+    def __init__(self, saved_state_manager, summary_file = 'output.csv', summary_file_dir = 'results/'):
         self.saved_state_manager = saved_state_manager
         self.summary_file = summary_file_dir+summary_file
 
@@ -52,7 +52,7 @@ class AppManager():
             num_columns = len(df.columns)
 
             print("\nSort by any of the following?")
-            print(f"You can choose multiple options, press {num_columns+2} when finished\n")
+            print(f"You can choose multiple options, press {num_columns+1} when finished\n")
 
             for (x, column) in enumerate(df):
                 print(str(x+1) + ". " + column)
@@ -181,7 +181,7 @@ class AppManager():
 
         self.saved_state_manager.save(summary_results_dict, detailed_results)
 
-        with open('src/output.csv', mode='a', newline='') as file:
+        with open('results/output.csv', mode='a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(summary_results)
         print(f"Results: {summary_results}")

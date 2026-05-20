@@ -3,7 +3,7 @@ import stanza
 import gensim.downloader as gd
 import amrlib
 
-from package.features.featurizer_decorator import FeatureExtractorBuilder
+from nlp_core.features.featurizer_decorator import FeatureExtractorBuilder
 
 def pytest_configure(config):
     stanza.download('en')
@@ -26,7 +26,7 @@ def obama_sentence():
 
 @pytest.fixture(scope="session")
 def gettys_text():
-    with open("gettysburg.txt", 'r', encoding='utf-8') as f:
+    with open("tests/gettysburg.txt", 'r', encoding='utf-8') as f:
         text = f.read()
     return text
 

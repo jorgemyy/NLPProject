@@ -1,9 +1,9 @@
 import stanza
 import amrlib
 
-from package.graphs.graph_builder import GraphBuilder
-from package.graphs.build_graph_strategies import *
-from package.graphs.parse_text_strategies import *
+from nlp_core.graphs.graph_builder import GraphBuilder
+from nlp_core.graphs.build_graph_strategies import *
+from nlp_core.graphs.parse_text_strategies import *
 
 class GraphBuilderFactory:
     def __init__(self):

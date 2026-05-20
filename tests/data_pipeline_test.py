@@ -1,8 +1,8 @@
 from torch_geometric.data import Data
 
-from package.models.model_factory import ModelFactory
-from package.graphs.graph_builder_factory import GraphBuilderFactory
-from package.data_pipeline import DataPipeline
+from nlp_core.models.model_factory import ModelFactory
+from nlp_core.graphs.graph_builder_factory import GraphBuilderFactory
+from nlp_core.data_pipeline import DataPipeline
 
 def test_prepare_ud(nlp, embedding_model, full_feature_extractor):
     '''test if the correct data objects are being created'''

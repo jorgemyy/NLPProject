@@ -1,5 +1,5 @@
 import pandas as pd
-from package.models.model_factory import ModelFactory
+from nlp_core.models.model_factory import ModelFactory
 
 def test_get_data():
     '''test if the data is successfully loaded from kaggles with the correct labels'''

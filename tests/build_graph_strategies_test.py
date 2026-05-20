@@ -1,6 +1,6 @@
-from package.graphs.parse_text_strategies import*
-from package.graphs.graph import Graph
-from package.graphs.build_graph_strategies import BuildUDGraphStrategy, BuildAMRGraphStrategy
+from nlp_core.graphs.parse_text_strategies import*
+from nlp_core.graphs.graph import Graph
+from nlp_core.graphs.build_graph_strategies import BuildUDGraphStrategy, BuildAMRGraphStrategy
 
 def test_get_graph_from_ud(obama_sentence, nlp):
     """test whether nodes are created"""

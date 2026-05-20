@@ -1,8 +1,8 @@
 import pandas as pd
 import nltk
 
-from package.graphs.graph import Graph
-from package.graphs.graph_builder_factory import GraphBuilderFactory
+from nlp_core.graphs.graph import Graph
+from nlp_core.graphs.graph_builder_factory import GraphBuilderFactory
 
 def test_make_graphs_from_amr(gettys_text, stog):
     """test whether graphs are created"""

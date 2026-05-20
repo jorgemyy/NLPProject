@@ -3,7 +3,7 @@ from sklearn.model_selection import train_test_split
 from torch_geometric.data import Data 
 import gensim.downloader as gd
 
-from package.features import featurizer 
+from nlp_core.features import featurizer 
 
 class DataPipeline():
     def __init__(self, model, graph_builder, feature_extractor, embedding_model=None):

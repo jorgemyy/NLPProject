@@ -1,6 +1,6 @@
 import torch
 from tqdm import tqdm 
-from package.graphs.graph import Graph
+from nlp_core.graphs.graph import Graph
 
 class GraphBuilder:
     def __init__(self, build_strategy, parse_strategy):
