@@ -181,7 +181,7 @@ class AppManager():
 
         self.saved_state_manager.save(summary_results_dict, detailed_results)
 
-        with open('results/output.csv', mode='a', newline='') as file:
+        with open(self.summary_file, mode='a', newline='') as file:
             writer = csv.writer(file)
             writer.writerow(summary_results)
         print(f"Results: {summary_results}")

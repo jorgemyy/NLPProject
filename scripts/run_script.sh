@@ -17,6 +17,6 @@ PROJECT_DIR=/scratch/alpine/jemi2768/NLPProject/
 source $PROJECT_DIR/venvs/nlpproject/bin/activate
 cd $PROJECT_DIR
 
-python src/main.py
+python src/main_set_args --epochs 10 --hidden_layer_dim 16 --cap 10 --feat all
 
 echo "Task complete"
